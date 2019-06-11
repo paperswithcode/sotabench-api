@@ -21,7 +21,7 @@ def benchmark(
     if not input_transform:
         input_transform = transforms.Compose([transforms.ToTensor()])
 
-    test_dataset = datasets.CIFAR10('./data', train=False, transform=input_transform, target_transform=target_transform, download=True)
+    test_dataset = datasets.ImageNet('./data', split='train', transform=input_transform, target_transform=target_transform, download=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     criterion = nn.CrossEntropyLoss()
 
