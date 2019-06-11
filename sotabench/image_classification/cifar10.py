@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 
 from sotabench.utils import AverageMeter, accuracy
 
-def evaluate_cifar10(
+def benchmark(
         model,
         input_transform=None,
         target_transform=None,
@@ -28,7 +28,7 @@ def evaluate_cifar10(
         input_transform = transforms.Compose([transforms.ToTensor()])
 
     # load the dataset
-    test_dataset = datasets.CIFAR10('/', train=False, transform=input_transform, target_transform=target_transform, download=True)
+    test_dataset = datasets.CIFAR10('./data', train=False, transform=input_transform, target_transform=target_transform, download=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
 
     # set up criterion
