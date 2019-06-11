@@ -7,14 +7,13 @@ import torchvision.transforms as transforms
 
 from sotabench.utils import AverageMeter, accuracy
 
-def evaluate(
+def evaluate_cifar10(
         model,
         input_transform=None,
         target_transform=None,
         is_cuda=True,
         num_workers=4,
-        batch_size=128,
-        print_freq=100):
+        batch_size=128):
 
     # with torch.no_grad():
 
@@ -55,16 +54,9 @@ def evaluate(
         batch_time.update(time.time() - end)
         end = time.time()
 
-        if i % print_freq == 0:
-            print('Test: [{0}/{1}]\t'
-                    'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    'Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                    'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                    i, len(test_loader), batch_time=batch_time, loss=losses,
-                    top1=top1, top5=top5))
+    print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
 
-        print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
-              .format(top1=top1, top5=top5))
-
-        return top1.avg, top5.avg
+    return {
+        'top_1_accuracy': top1.avg,
+        'top_5_accuracy': top5.avg
+        }

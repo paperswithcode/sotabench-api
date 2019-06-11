@@ -21,5 +21,5 @@ setup(
     description=DESCRIPTION,
     long_description=DESCRIPTION,
     url=URL,
-    install_requires=[],
+    install_requires=['torch', 'torchvision'],
 )
