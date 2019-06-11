@@ -5,7 +5,7 @@ import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
-from sotalearn.utils import AverageMeter, accuracy
+from sotabench.utils import AverageMeter, accuracy
 
 def evaluate(
         model,
