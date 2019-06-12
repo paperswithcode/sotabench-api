@@ -33,7 +33,7 @@ def evaluate(benchmark_function):
     :return: process_function: a function processing the benchmark function as an input
     """
 
-    def process_function():
-        benchmark_function()
+    def process_function(*args, **kwargs):
+        return benchmark_function(*args, **kwargs)
 
     return process_function
