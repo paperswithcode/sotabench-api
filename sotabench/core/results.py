@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 import torch.utils.data as data
@@ -25,7 +26,7 @@ class BenchmarkResult:
 
 def evaluate(benchmark_function):
     """
-    Decorator for identifying a function as a benchmarking function to capture the output of
+    Performs evaluation using a benchmark function and saves results to a JSON
 
     TODO: work out functionality
 
@@ -34,6 +35,10 @@ def evaluate(benchmark_function):
     """
 
     def process_function(*args, **kwargs):
-        return benchmark_function(*args, **kwargs)
+        result = benchmark_function(*args, **kwargs)
+        result_dict = {'metrics': result.metrics, 'task': result.task, 'dataset': result.dataset_name}
+
+        with open('evaluation.json', 'w') as f:
+            json.dump(result_dict, f, ensure_ascii=False)
 
     return process_function
