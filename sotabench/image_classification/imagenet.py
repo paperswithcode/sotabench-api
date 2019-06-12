@@ -31,12 +31,16 @@ def benchmark(
             normalize,
         ])
 
-    test_dataset = datasets.ImageNet(data_root, split='val', transform=input_transform, target_transform=target_transform, download=False)
+    try:
+        test_dataset = datasets.ImageNet(data_root, split='val', transform=input_transform, target_transform=target_transform, download=True)
+    except:
+        test_dataset = datasets.ImageNet(data_root, split='val', transform=input_transform, target_transform=target_transform, download=False)
+
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     criterion = nn.CrossEntropyLoss()
 
     metrics = get_classification_metrics(model=model, test_loader=test_loader, criterion=criterion, is_cuda=is_cuda)
 
-    print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=metrics['top_1_accuracy'], top5=metrics['top_5_accuracy']))
+    print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=metrics['top_1_accuracy'], top5=metrics['top_5_accuracy']))
 
     return BenchmarkResult(task="Image Classification", dataset=test_dataset, metrics=metrics)
