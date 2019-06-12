@@ -13,6 +13,7 @@ setup(
     maintainer=AUTHOR,
     version='0.001',
     packages=[PACKAGE_NAME,
+              'sotabench.core',
               'sotabench.datasets',
               'sotabench.image_classification'],
     include_package_data=True,
