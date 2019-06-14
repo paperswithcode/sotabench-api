@@ -30,7 +30,7 @@ class BenchmarkResult:
         self.paper_model_name = paper_model_name
         self.paper_arxiv_id = paper_arxiv_id
         self.paper_pwc_id = paper_pwc_id
-        self.paper_hub_url = pytorch_hub_url
+        self.pytorch_hub_url = pytorch_hub_url
 
         if isinstance(dataset, str):
             self.dataset_name = dataset
