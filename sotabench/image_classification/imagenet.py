@@ -10,12 +10,12 @@ from .utils import get_classification_metrics
 @evaluate
 def benchmark(
         model,
-        input_transform=None,
-        target_transform=None,
+        input_transform=None, target_transform=None,
         is_cuda: bool = True,
-        num_workers: int = 4,
-        batch_size: int = 128,
-        data_root: str = './data') -> BenchmarkResult:
+        data_root: str = './data',
+        num_workers: int = 4, batch_size: int = 128,
+        paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
+        pytorch_hub_url: str = None) -> BenchmarkResult:
 
     if is_cuda:
         model = model.cuda()
@@ -43,4 +43,8 @@ def benchmark(
 
     print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=metrics['top_1_accuracy'], top5=metrics['top_5_accuracy']))
 
-    return BenchmarkResult(task="Image Classification", dataset=test_dataset, metrics=metrics)
+    return BenchmarkResult(
+        task="Image Classification", dataset=test_dataset,
+        metrics=metrics,
+        pytorch_hub_url=pytorch_hub_url,
+        paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
