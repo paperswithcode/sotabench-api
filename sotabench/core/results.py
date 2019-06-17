@@ -65,7 +65,7 @@ def evaluate(benchmark_function):
             models_dict = {0: result_dict}
         else:
             models_dict = json.load(open('evaluation.json'))
-            models_dict[max(models_dict) + 1] = result_dict
+            models_dict[max([int(k) for k in models_dict.keys()]) + 1] = result_dict
 
         with open('evaluation.json', 'w') as f:
             json.dump(models_dict, f, ensure_ascii=False)
