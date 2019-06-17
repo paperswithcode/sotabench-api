@@ -64,7 +64,7 @@ def evaluate(benchmark_function):
         if not os.path.isfile('evaluation.json'):
             models_dict = {0: result_dict}
         else:
-            models_dict = json.loads('evaluation.json')
+            models_dict = json.load(open('evaluation.json'))
             models_dict[max(models_dict) + 1] = result_dict
 
         with open('evaluation.json', 'w') as f:
