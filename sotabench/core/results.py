@@ -62,10 +62,10 @@ def evaluate(benchmark_function):
             'pytorch_hub_url': result.pytorch_hub_url}
 
         if not os.path.isfile('evaluation.json'):
-            models_dict = {0: result_dict}
+            models_dict = [result_dict]
         else:
             models_dict = json.load(open('evaluation.json'))
-            models_dict[max([int(k) for k in models_dict.keys()]) + 1] = result_dict
+            models_dict.append(result_dict)
 
         with open('evaluation.json', 'w') as f:
             json.dump(models_dict, f, ensure_ascii=False)
