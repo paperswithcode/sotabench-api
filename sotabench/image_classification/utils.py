@@ -30,6 +30,6 @@ def get_classification_metrics(model, test_loader, criterion, is_cuda=True):
             end = time.time()
 
     return {
-        'top_1_accuracy': top1.avg,
-        'top_5_accuracy': top5.avg
+        'Top 1 Accuracy': top1.avg,
+        'Top 5 Accuracy': top5.avg
     }
