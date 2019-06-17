@@ -19,7 +19,7 @@ class BenchmarkResult:
 
         :param task: string describing a task, e.g. "Image Classification"
         :param dataset: either a string for a name, e.g. "CIFAR-10", or a torch.data.Dataset object
-        :param metrics: dict with keys as metric names, e.g. 'top_1_accuracy', and values as floats, e.g. 0.80
+        :param metrics: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
         :param: paper_model_name: (optional) Name of the model that comes from the paper, e.g. 'BERT small'
         :param: paper_arxiv_id: (optional) Representing the paper where the model comes from, e.g. '1901.07518'
         :param: paper_pwc_id: (optional) Representing the location of the PWC paper, e.g.: 'hybrid-task-cascade-for-instance-segmentation'
