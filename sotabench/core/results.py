@@ -44,8 +44,6 @@ def evaluate(benchmark_function):
     """
     Performs evaluation using a benchmark function and saves results to a JSON
 
-    TODO: work out exact functionality
-
     :param benchmark_function: a benchmark function that returns a BenchmarkResult object
     :return: process_function: a function processing the benchmark function as an input
     """

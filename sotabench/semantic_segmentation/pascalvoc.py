@@ -1,15 +1,15 @@
 import torch
-import torch.nn as nn
 import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 
 from sotabench.core import BenchmarkResult, evaluate
 
-from .utils import get_classification_metrics
+from .utils import get_segmentation_metrics, JointCompose, DefaultPascalTransform
+
 
 @evaluate
 def benchmark(
         model,
+        dataset_year='2007',
         input_transform=None, target_transform=None, model_output_transform=None,
         is_cuda: bool = True,
         data_root: str = './.data',
@@ -28,22 +28,20 @@ def benchmark(
     model.eval()
 
     if not input_transform:
-        normalize = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        input_transform = transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
+        input_transform = JointCompose([
+            DefaultPascalTransform(target_size=(512, 512), ignore_index=255)
         ])
 
-    test_dataset = datasets.STL10(data_root, split='test', transform=input_transform, target_transform=target_transform, download=True)
+    test_dataset = datasets.VOCSegmentation(root=data_root, image_set='val', year=dataset_year, transform=input_transform, target_transform=target_transform, download=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    criterion = nn.CrossEntropyLoss()
+    test_loader.no_classes = 21 # Number of classes for PASCAL VOC
 
-    metrics = get_classification_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, criterion=criterion, is_cuda=is_cuda)
+    metrics = get_segmentation_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
 
-    print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=metrics['Top 1 Accuracy'], top5=metrics['Top 5 Accuracy']))
+    print('Mean IOU: %s' % metrics['Mean IOU'])
 
     return BenchmarkResult(
-        task="Image Classification", dataset=test_dataset,
+        task="Semantic Segmentation", dataset=test_dataset,
         metrics=metrics,
         pytorch_hub_url=pytorch_hub_url,
         paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)

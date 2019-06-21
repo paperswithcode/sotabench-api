@@ -4,7 +4,7 @@ import torch
 from sotabench.utils import AverageMeter, accuracy
 
 
-def get_classification_metrics(model, test_loader, criterion, is_cuda=True):
+def get_classification_metrics(model, model_output_transform, test_loader, criterion, is_cuda=True):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -21,6 +21,10 @@ def get_classification_metrics(model, test_loader, criterion, is_cuda=True):
 
             # compute output
             output = model(input)
+
+            if model_output_transform is not None:
+                output = model_output_transform(output)
+
             loss = criterion(output, target)
             prec1, prec5 = accuracy(output, target, topk=(1, 5))
             losses.update(loss.data.item(), input.size(0))
