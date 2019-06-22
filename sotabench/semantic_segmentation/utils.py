@@ -124,6 +124,8 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
 
     train_ious = []
 
+    print(len(test_loader))
+
     with torch.no_grad():
         for i, (images, labels) in enumerate(test_loader):
 
@@ -141,6 +143,7 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
             labels = labels.detach().cpu().numpy()
             iou = compute_iou_batch(np.argmax(output, axis=1), labels, np.arange(1, test_loader.no_classes))
             train_ious.append(iou)
+            print(i)
 
     return {
         'Mean IOU': np.mean(train_ious)

@@ -1,5 +1,6 @@
 import json
 import os
+import zipfile
 from collections import namedtuple
 
 from torchvision.datasets.vision import VisionDataset
@@ -113,8 +114,25 @@ class Cityscapes(VisionDataset):
                              ' or "color"')
 
         if not os.path.isdir(self.images_dir) or not os.path.isdir(self.targets_dir):
-            raise RuntimeError('Dataset not found or incomplete. Please make sure all required folders for the'
-                               ' specified "split" and "mode" are inside the "root" directory')
+            image_dir_zip = self.images_dir + '_trainvaltest.zip'
+
+            if self.mode == 'gtFine':
+                target_dir_zip = os.path.join(self.root, self.mode) + '_trainvaltest.zip'
+            elif self.mode == 'gtCoarse':
+                target_dir_zip = os.path.join(self.root, self.mode)
+
+            print(image_dir_zip)
+            print(target_dir_zip)
+            if os.path.isfile(image_dir_zip) and os.path.isfile(target_dir_zip):
+                image_zip = zipfile.ZipFile(image_dir_zip, 'r')
+                target_zip = zipfile.ZipFile(target_dir_zip, 'r')
+                image_zip.extractall(self.root)
+                target_zip.extractall(self.root)
+                image_zip.close()
+                target_zip.close()
+            else:
+                raise RuntimeError('Dataset not found or incomplete. Please make sure all required folders for the'
+                                   ' specified "split" and "mode" are inside the "root" directory')
 
         for city in os.listdir(self.images_dir):
             img_dir = os.path.join(self.images_dir, city)
