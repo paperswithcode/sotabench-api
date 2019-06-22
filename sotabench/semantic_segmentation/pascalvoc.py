@@ -10,7 +10,7 @@ from .utils import get_segmentation_metrics, JointCompose, DefaultPascalTransfor
 def benchmark(
         model,
         dataset_year='2007',
-        input_transform=None, target_transform=None, model_output_transform=None,
+        input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
         is_cuda: bool = True,
         data_root: str = './.data',
         num_workers: int = 4, batch_size: int = 128, num_gpu: int = 1,
@@ -32,7 +32,8 @@ def benchmark(
             DefaultPascalTransform(target_size=(512, 512), ignore_index=255)
         ])
 
-    test_dataset = datasets.VOCSegmentation(root=data_root, image_set='val', year=dataset_year, transform=input_transform, target_transform=target_transform, download=True)
+    test_dataset = datasets.VOCSegmentation(root=data_root, image_set='val', year=dataset_year,
+                                            transform=input_transform, target_transform=target_transform, transforms=transforms, download=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     test_loader.no_classes = 21 # Number of classes for PASCAL VOC
 
