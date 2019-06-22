@@ -1,7 +1,7 @@
 import torch
 import torchvision
-import torchvision.datasets as datasets
 
+from sotabench.datasets.cityscapes import Cityscapes
 from sotabench.core import BenchmarkResult, evaluate
 
 from .utils import get_segmentation_metrics, JointCompose, DefaultCityscapesTransform
@@ -32,7 +32,7 @@ def benchmark(
             DefaultCityscapesTransform(target_size=(1024, 2048), ignore_index=255)
         ])
 
-    test_dataset = datasets.Cityscapes(root=data_root, split='val', target_type='semantic', transform=input_transform,
+    test_dataset = Cityscapes(root=data_root, split='val', target_type='semantic', transform=input_transform,
                                        target_transform=target_transform, transforms=transforms)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     test_loader.no_classes = 19 # Number of classes for Cityscapes
