@@ -139,6 +139,9 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
 
             output = output.detach().cpu().numpy()
             labels = labels.detach().cpu().numpy()
+            print(output)
+            print(labels)
+            print(test_loader.no_classes)
             iou = compute_iou_batch(np.argmax(output, axis=1), labels, test_loader.no_classes)
             train_ious.append(iou)
 
