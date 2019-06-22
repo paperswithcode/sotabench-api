@@ -23,7 +23,7 @@ def get_classification_metrics(model, model_output_transform, test_loader, crite
             output = model(input)
 
             if model_output_transform is not None:
-                output = model_output_transform(output)
+                output = model_output_transform(output, target)
 
             loss = criterion(output, target)
             prec1, prec5 = accuracy(output, target, topk=(1, 5))

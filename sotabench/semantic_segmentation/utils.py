@@ -139,7 +139,7 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
             output = model(images)
 
             if model_output_transform is not None:
-                output = model_output_transform(output)
+                output = model_output_transform(output, labels)
 
             output = output.detach().cpu().numpy()
             labels = labels.detach().cpu().numpy()
