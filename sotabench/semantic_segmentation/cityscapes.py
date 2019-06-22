@@ -4,7 +4,7 @@ import torchvision
 from sotabench.datasets.cityscapes import Cityscapes
 from sotabench.core import BenchmarkResult, evaluate
 
-from .utils import get_segmentation_metrics, JointCompose, DefaultCityscapesTransform
+from .utils import get_segmentation_metrics, FlipChannels, CityscapesMaskConversion
 
 
 @evaluate
@@ -28,9 +28,17 @@ def benchmark(
     model.eval()
 
     if not input_transform or target_transform or transforms:
-        transforms = JointCompose([
-            DefaultCityscapesTransform(target_size=(1024, 2048), ignore_index=255)
+        mean_std = ([103.939, 116.779, 123.68], [1.0, 1.0, 1.0])
+
+        input_transform = torchvision.transforms.Compose([
+            FlipChannels(),
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Lambda(lambda x: x.mul_(255)),
+            torchvision.transforms.Normalize(*mean_std)
         ])
+
+        target_transform = torchvision.transforms.Compose([
+            CityscapesMaskConversion(ignore_index=255)])
 
     test_dataset = Cityscapes(root=data_root, split='val', target_type='semantic', transform=input_transform,
                                        target_transform=target_transform, transforms=transforms)

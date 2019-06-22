@@ -17,6 +17,12 @@ def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     return norm_img
 
 
+class FlipChannels(object):
+    def __call__(self, img):
+        img = np.array(img)[:, :, ::-1]
+        return Image.fromarray(img.astype(np.uint8))
+
+
 class PadIfNeededRightBottom(DualTransform):
     def __init__(self, min_height=769, min_width=769, border_mode=cv2.BORDER_CONSTANT,
                  value=0, ignore_index=255, always_apply=False, p=1.0):
@@ -72,27 +78,6 @@ class DefaultPascalTransform(object):
         return img, target
 
 
-class DefaultCityscapesTransform(object):
-    """Applies standard Cityscapes Transforms"""
-
-    def __init__(self, target_size, ignore_index):
-        self.target_size = target_size
-        self.ignore_index = ignore_index
-
-    def __call__(self, img, target):
-        img = np.array(img)
-        target = np.array(target)
-        target[target == self.ignore_index] = 0
-
-        img = minmax_normalize(img, norm_range=(-1, 1))
-        img = img.transpose(2, 0, 1)
-
-        img = torch.FloatTensor(img)
-        target = torch.LongTensor(target)
-
-        return img, target
-
-
 class CityscapesMaskConversion(object):
     """Converts Cityscape masks - adds an ignore index"""
 
@@ -124,32 +109,36 @@ class JointCompose(transforms.Compose):
         return img, target
 
 
-def compute_ious(pred, label, classes, ignore_index=255, only_present=True):
-    pred[label == ignore_index] = 0
-    ious = []
-    for c in classes:
-        label_c = label == c
-        if only_present and np.sum(label_c) == 0:
-            ious.append(np.nan)
-            continue
-        pred_c = pred == c
-        intersection = np.logical_and(pred_c, label_c).sum()
-        union = np.logical_or(pred_c, label_c).sum()
-        if union != 0:
-            ious.append(intersection / union)
-    return ious if ious else [1]
+def _fast_hist(label_pred, label_true, num_classes):
+    mask = (label_true >= 0) & (label_true < num_classes)
+    hist = np.bincount(
+        num_classes * label_true[mask].astype(int) +
+        label_pred[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
+    return hist
 
+def evaluate_segmentation(predictions, gts, num_classes):
+    hist = np.zeros((num_classes, num_classes))
+    for lp, lt in zip(predictions, gts):
+        hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
+    # axis 0: gt, axis 1: prediction
+    acc = np.diag(hist).sum() / hist.sum()
+    acc_cls = np.diag(hist) / hist.sum(axis=1)
+    acc_cls = np.nanmean(acc_cls)
+    iu = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
+    mean_iu = np.nanmean(iu)
+    freq = hist.sum(axis=1) / hist.sum()
+    fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
 
-def compute_iou_batch(preds, labels, classes=None):
-    iou = np.nanmean([np.nanmean(compute_ious(pred, label, classes)) for pred, label in zip(preds, labels)])
-    return iou
-
+    return {
+        'Accuracy (overall)': acc,
+        'Accuracy (class)': acc_cls,
+        'Mean IoU': mean_iu,
+        'Frequency Weighted Average Accuracy': fwavacc
+    }
 
 def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda=True):
-
-    train_ious = []
-
-    print(len(test_loader))
+    pred_all = []
+    mask_all = []
 
     with torch.no_grad():
         for i, (images, labels) in enumerate(test_loader):
@@ -164,15 +153,15 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
             if model_output_transform is not None:
                 output = model_output_transform(output, labels)
 
-            output = output.detach().cpu().numpy()
-            labels = labels.detach().cpu().numpy()
-            iou = compute_iou_batch(np.argmax(output, axis=1), labels, np.arange(1, test_loader.no_classes))
-            train_ious.append(iou)
-            print(i)
+            pred = output.data.max(1)[1].cpu().numpy()
 
-            if i > 10:
+            pred_all.append(pred)
+            mask_all.append(labels.data.cpu().numpy())
+
+            if i > 5:
                 break
 
-    return {
-        'Mean IOU': np.mean(train_ious)
-    }
+        mask_all = np.concatenate(mask_all)
+        pred_all = np.concatenate(pred_all)
+
+    return evaluate_segmentation(pred_all, mask_all, test_loader.no_classes)
