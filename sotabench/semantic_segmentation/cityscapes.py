@@ -27,8 +27,8 @@ def benchmark(
 
     model.eval()
 
-    if not input_transform:
-        input_transform = JointCompose([
+    if not input_transform or target_transform or transforms:
+        transforms = JointCompose([
             DefaultCityscapesTransform(target_size=(1024, 2048), ignore_index=255)
         ])
 
