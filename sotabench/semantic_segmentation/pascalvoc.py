@@ -39,7 +39,7 @@ def benchmark(
 
     metrics = get_segmentation_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
 
-    print('Mean IOU: %s' % metrics['Mean IOU'])
+    print(metrics)
 
     return BenchmarkResult(
         task="Semantic Segmentation", dataset=test_dataset,

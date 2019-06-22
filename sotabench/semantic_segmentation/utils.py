@@ -158,9 +158,6 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
             pred_all.append(pred)
             mask_all.append(labels.data.cpu().numpy())
 
-            if i > 5:
-                break
-
         mask_all = np.concatenate(mask_all)
         pred_all = np.concatenate(pred_all)
 
