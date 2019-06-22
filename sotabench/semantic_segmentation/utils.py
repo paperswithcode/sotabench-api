@@ -93,7 +93,7 @@ class DefaultCityscapesTransform(object):
         return img, target
 
 
-class CityScapesMaskConversion(object):
+class CityscapesMaskConversion(object):
     """Converts Cityscape masks - adds an ignore index"""
 
     def __init__(self, ignore_index):
@@ -113,7 +113,7 @@ class CityScapesMaskConversion(object):
         for k, v in self.id_to_trainid.items():
             mask_copy[mask == k] = v
 
-        return torch.from_numpy(mask).long()
+        return torch.from_numpy(mask_copy).long()
 
 
 class JointCompose(transforms.Compose):
