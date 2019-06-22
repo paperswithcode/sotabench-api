@@ -145,6 +145,9 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
             train_ious.append(iou)
             print(i)
 
+            if i > 10:
+                break
+
     return {
         'Mean IOU': np.mean(train_ious)
     }

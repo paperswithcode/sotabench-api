@@ -121,15 +121,9 @@ class Cityscapes(VisionDataset):
             elif self.mode == 'gtCoarse':
                 target_dir_zip = os.path.join(self.root, self.mode)
 
-            print(image_dir_zip)
-            print(target_dir_zip)
             if os.path.isfile(image_dir_zip) and os.path.isfile(target_dir_zip):
-                image_zip = zipfile.ZipFile(image_dir_zip, 'r')
-                target_zip = zipfile.ZipFile(target_dir_zip, 'r')
-                image_zip.extractall(self.root)
-                target_zip.extractall(self.root)
-                image_zip.close()
-                target_zip.close()
+                extract_cityscapes_zip(zip_location=image_dir_zip, root=self.root)
+                extract_cityscapes_zip(zip_location=target_dir_zip, root=self.root)
             else:
                 raise RuntimeError('Dataset not found or incomplete. Please make sure all required folders for the'
                                    ' specified "split" and "mode" are inside the "root" directory')
@@ -195,3 +189,9 @@ class Cityscapes(VisionDataset):
             return '{}_color.png'.format(mode)
         else:
             return '{}_polygons.json'.format(mode)
+
+
+def extract_cityscapes_zip(zip_location, root):
+    zip_file = zipfile.ZipFile(zip_location, 'r')
+    zip_file.extractall(root)
+    zip_file.close()
