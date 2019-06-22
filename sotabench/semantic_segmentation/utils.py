@@ -125,7 +125,7 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
     train_ious = []
 
     with torch.no_grad():
-        for i, (image, labels) in enumerate(test_loader):
+        for i, (images, labels) in enumerate(test_loader):
 
             images = images.numpy().transpose(0, 2, 3, 1)
             labels = labels.numpy()
