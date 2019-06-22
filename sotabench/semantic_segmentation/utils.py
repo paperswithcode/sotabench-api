@@ -62,6 +62,7 @@ class DefaultPascalTransform(object):
         resized = resizer(image=img, mask=target)
         img = resized['image']
         target = resized['mask']
+        img = img.transpose(2, 0, 1)
 
         img = torch.FloatTensor(img)
         target = torch.LongTensor(target)
@@ -82,6 +83,7 @@ class DefaultCityscapesTransform(object):
         target[target == self.ignore_index] = 0
 
         img = minmax_normalize(img, norm_range=(-1, 1))
+        img = img.transpose(2, 0, 1)
 
         img = torch.FloatTensor(img)
         target = torch.LongTensor(target)
