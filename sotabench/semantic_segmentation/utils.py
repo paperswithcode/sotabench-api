@@ -46,9 +46,7 @@ class DefaultPascalTransform(object):
         self.target_size = target_size
         self.ignore_index = ignore_index
 
-    def __call__(self, sample):
-        print(sample)
-        img, target = sample[0], sample[1]
+    def __call__(self, img, target):
         img = np.array(img)
         target = np.array(target)
         target[target == self.ignore_index] = 0
