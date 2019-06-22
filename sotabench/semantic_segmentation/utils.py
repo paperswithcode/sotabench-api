@@ -62,7 +62,6 @@ class DefaultPascalTransform(object):
         resized = resizer(image=img, mask=target)
         img = resized['image']
         target = resized['mask']
-        img = img.transpose(2, 0, 1)
 
         img = torch.FloatTensor(img)
         target = torch.LongTensor(target)
@@ -83,7 +82,6 @@ class DefaultCityscapesTransform(object):
         target[target == self.ignore_index] = 0
 
         img = minmax_normalize(img, norm_range=(-1, 1))
-        img = img.transpose(2, 0, 1)
 
         img = torch.FloatTensor(img)
         target = torch.LongTensor(target)
@@ -126,8 +124,6 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
 
     with torch.no_grad():
         for i, (images, labels) in enumerate(test_loader):
-
-            images = images.transpose(0, 2, 3, 1)
 
             if is_cuda:
                 images = images.cuda(non_blocking=True)
