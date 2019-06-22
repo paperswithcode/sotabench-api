@@ -6,6 +6,8 @@ from torchvision.transforms import transforms
 import albumentations as albu
 from albumentations.core.transforms_interface import DualTransform
 
+from PIL import Image
+
 
 def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     # range(0, 1)
@@ -71,7 +73,7 @@ class DefaultPascalTransform(object):
 
 
 class DefaultCityscapesTransform(object):
-    """Applies standard Pascal Transforms"""
+    """Applies standard Cityscapes Transforms"""
 
     def __init__(self, target_size, ignore_index):
         self.target_size = target_size
@@ -89,6 +91,29 @@ class DefaultCityscapesTransform(object):
         target = torch.LongTensor(target)
 
         return img, target
+
+
+class CityScapesMaskConversion(object):
+    """Converts Cityscape masks - adds an ignore index"""
+
+    def __init__(self, ignore_index):
+        self.ignore_index = ignore_index
+
+        self.id_to_trainid = {-1: ignore_index, 0: ignore_index, 1: ignore_index, 2: ignore_index, 3: ignore_index,
+                              4: ignore_index, 5: ignore_index, 6: ignore_index, 7: 0, 8: 1, 9: ignore_index,
+                              10: ignore_index, 11: 2, 12: 3, 13: 4, 14: ignore_index, 15: ignore_index, 16: ignore_index,
+                              17: 5, 18: ignore_index, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14,
+                              28: 15, 29: ignore_index, 30: ignore_index, 31: 16, 32: 17, 33: 18}
+
+    def __call__(self, img):
+
+        mask = np.array(img, dtype=np.int32)
+        mask_copy = mask.copy()
+
+        for k, v in self.id_to_trainid.items():
+            mask_copy[mask == k] = v
+
+        return torch.from_numpy(mask).long()
 
 
 class JointCompose(transforms.Compose):
