@@ -19,6 +19,15 @@ Clone the example repository and repo into it. You should see a hubconf.py file;
 will contain an sotabench call (like above) - this is what you need to run to capture
 the evaluation output.
 
+## Making sure evaluation creates a json
+
+Set the following environment variable in production:
+
+```bash
+export SOTABENCH_STORE_RESULTS=true
+```
+
+
 ## Prepopulated Data Cache
 
 When the evaluation script is run, it typically includes a PyTorch Dataset 

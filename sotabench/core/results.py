@@ -40,6 +40,8 @@ class BenchmarkResult:
             self.dataset_name = type(dataset).__name__
             self.dataset_obj = dataset
 
+        self.create_json = True if os.environ.get('SOTABENCH_STORE_RESULTS') == 'true' else False
+
         self.evaluate()
 
     def evaluate(self):
@@ -59,7 +61,7 @@ class BenchmarkResult:
             'paper_pwc_id': self.paper_pwc_id,
             'pytorch_hub_url': self.pytorch_hub_url}
 
-        if os.environ['SOTABENCH_STORE_RESULTS'] == 'True':
+        if self.create_json:
 
             if not os.path.isfile('evaluation.json'):
                 models_dict = [build_dict]
