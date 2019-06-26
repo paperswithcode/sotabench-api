@@ -1,69 +1,40 @@
-import torch
+from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
+import torchvision.transforms as transforms
 
-from sotabench.core import BenchmarkResult, evaluate
+from sotabench.core import BenchmarkResult
+from sotabench.utils import send_model_to_device
 
-from .utils import get_segmentation_metrics, JointCompose, DefaultPascalTransform
-
-
-@evaluate
-def benchmark(
-        model,
-        dataset_year='2007',
-        input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
-        is_cuda: bool = True,
-        data_root: str = './.data',
-        num_workers: int = 4, batch_size: int = 128, num_gpu: int = 1,
-        paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
-        pytorch_hub_url: str = None) -> BenchmarkResult:
-
-    if num_gpu > 1:
-        model = torch.nn.DataParallel(model, device_ids=list(range(num_gpu)))
-    else:
-        model = model
-
-    if is_cuda:
-        model = model.cuda()
-
-    model.eval()
-
-    if not input_transform or target_transform or transforms:
-        transforms = JointCompose([
-            DefaultPascalTransform(target_size=(512, 512), ignore_index=255)
-        ])
-
-    test_dataset = datasets.VOCSegmentation(root=data_root, image_set='val', year=dataset_year,
-                                            transform=input_transform, target_transform=target_transform, transforms=transforms, download=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    test_loader.no_classes = 21 # Number of classes for PASCAL VOC
-
-    metrics = get_segmentation_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
-
-    print(metrics)
-
-    return BenchmarkResult(
-        task="Semantic Segmentation", dataset=test_dataset,
-        metrics=metrics,
-        pytorch_hub_url=pytorch_hub_url,
-        paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
+from .utils import evaluate_segmentation, JointCompose, DefaultPascalTransform
 
 
-import boto3
-import os
+class PASCALVOC:
 
-BUCKET_NAME = 'sotabench'
-OUTPUT_DIR = './data/'
+    dataset = datasets.VOCSegmentation
+    normalize = transforms.Normalize(*([103.939, 116.779, 123.68], [1.0, 1.0, 1.0]))
+    transforms = JointCompose([DefaultPascalTransform(target_size=(512, 512), ignore_index=255)])
 
-if not os.path.isdir(OUTPUT_DIR):
-    os.mkdir(OUTPUT_DIR)
+    @classmethod
+    def benchmark(cls, model, dataset_year='2007', input_transform=None, target_transform=None, transforms=None,
+                  model_output_transform=None, is_cuda: bool = True, data_root: str = './.data', num_workers: int = 4,
+                  batch_size: int = 128, num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None,
+                  paper_pwc_id: str = None, pytorch_hub_url: str = None) -> BenchmarkResult:
 
-s3 = boto3.client('s3')
-list = s3.list_objects(Bucket=BUCKET_NAME)['Contents']
-files = [i for i in s3.list_objects(Bucket='sotabench')['Contents'] if i['Key'][-1] != '/']
+        config = locals()
+        model = send_model_to_device(model, is_cuda=is_cuda, num_gpu=num_gpu)
+        model.eval()
 
-for file in files:
-    if 'test2017' not in file['Key']:
-        continue
-    print(file['Key'])
-    output_location = '%s%s' % (OUTPUT_DIR, file['Key'].split('/')[-1])
-    s3.download_file(BUCKET_NAME, file['Key'], output_location)
+        if not input_transform or target_transform or transforms:
+            transforms = cls.transforms
+
+        test_dataset = cls.dataset(root=data_root, image_set='val', year=dataset_year, transform=input_transform,
+                                   target_transform=target_transform, transforms=transforms, download=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+        test_loader.no_classes = 21  # Number of classes for Cityscapes
+        test_results = evaluate_segmentation(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
+
+        print(test_results)
+
+        return BenchmarkResult(task="Semantic Segmentation", benchmark=cls, config=config, dataset=test_dataset,
+                               results=test_results, pytorch_hub_url=pytorch_hub_url, paper_model_name=paper_model_name,
+                               paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)

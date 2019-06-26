@@ -1,1 +1,1 @@
-from .results import BenchmarkResult, evaluate
+from .results import BenchmarkResult

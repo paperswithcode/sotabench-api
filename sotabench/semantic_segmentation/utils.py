@@ -116,7 +116,7 @@ def _fast_hist(label_pred, label_true, num_classes):
         label_pred[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
     return hist
 
-def evaluate_segmentation(predictions, gts, num_classes):
+def segmentation_metrics(predictions, gts, num_classes):
     hist = np.zeros((num_classes, num_classes))
     for lp, lt in zip(predictions, gts):
         hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
@@ -136,7 +136,7 @@ def evaluate_segmentation(predictions, gts, num_classes):
         'Frequency Weighted Average Accuracy': fwavacc
     }
 
-def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda=True):
+def evaluate_segmentation(model, model_output_transform, test_loader, is_cuda=True):
     pred_all = []
     mask_all = []
 
@@ -161,4 +161,4 @@ def get_segmentation_metrics(model, model_output_transform, test_loader, is_cuda
         mask_all = np.concatenate(mask_all)
         pred_all = np.concatenate(pred_all)
 
-    return evaluate_segmentation(pred_all, mask_all, test_loader.no_classes)
+    return segmentation_metrics(pred_all, mask_all, test_loader.no_classes)
