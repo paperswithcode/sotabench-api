@@ -37,9 +37,7 @@ def benchmark(
 
     test_dataset = datasets.SVHN(data_root, split='test', transform=input_transform, target_transform=target_transform, download=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    criterion = nn.CrossEntropyLoss()
-
-    metrics = get_classification_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, criterion=criterion, is_cuda=is_cuda)
+    metrics = get_classification_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
 
     print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=metrics['Top 1 Accuracy'], top5=metrics['Top 5 Accuracy']))
 

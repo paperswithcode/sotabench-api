@@ -54,3 +54,4 @@ def benchmark(
         metrics=metrics,
         pytorch_hub_url=pytorch_hub_url,
         paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
+

@@ -1,0 +1,8 @@
+albumentations
+mkdocs
+mkdocs-material
+numpy
+opencv-python
+pycocotools
+torch==1.1.0
+torchvision==0.3.0

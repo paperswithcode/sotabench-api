@@ -9,7 +9,7 @@ class BenchmarkResult:
 
     def __init__(self, task: str,
                  dataset: Union[str, data.Dataset],
-                 metrics: dict,
+                 results: dict,
                  paper_model_name: str = None,
                  paper_arxiv_id: str = None,
                  paper_pwc_id: str = None,
@@ -19,7 +19,7 @@ class BenchmarkResult:
 
         :param task: string describing a task, e.g. "Image Classification"
         :param dataset: either a string for a name, e.g. "CIFAR-10", or a torch.data.Dataset object
-        :param metrics: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
+        :param results: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
         :param: paper_model_name: (optional) Name of the model that comes from the paper, e.g. 'BERT small'
         :param: paper_arxiv_id: (optional) Representing the paper where the model comes from, e.g. '1901.07518'
         :param: paper_pwc_id: (optional) Representing the location of the PWC paper, e.g.: 'hybrid-task-cascade-for-instance-segmentation'
@@ -27,7 +27,7 @@ class BenchmarkResult:
 
         """
         self.task = task
-        self.metrics = metrics
+        self.results = results
         self.paper_model_name = paper_model_name
         self.paper_arxiv_id = paper_arxiv_id
         self.paper_pwc_id = paper_pwc_id
@@ -40,32 +40,34 @@ class BenchmarkResult:
             self.dataset_name = type(dataset).__name__
             self.dataset_obj = dataset
 
-def evaluate(benchmark_function):
-    """
-    Performs evaluation using a benchmark function and saves results to a JSON
+        self.evaluate()
 
-    :param benchmark_function: a benchmark function that returns a BenchmarkResult object
-    :return: process_function: a function processing the benchmark function as an input
-    """
+    def evaluate(self):
+        """
+        Performs evaluation using a benchmark function and returns a dictionary of the build results. If an environmental
+        variable is set (SOTABENCH_STORE_RESULTS == 'True') then will also save a JSON called evaluation.json
 
-    def process_function(*args, **kwargs):
-        result = benchmark_function(*args, **kwargs)
-        result_dict = {
-            'metrics': result.metrics,
-            'task': result.task,
-            'dataset': result.dataset_name,
-            'paper_model_name': result.paper_model_name,
-            'paper_arxiv_id': result.paper_arxiv_id,
-            'paper_pwc_id': result.paper_pwc_id,
-            'pytorch_hub_url': result.pytorch_hub_url}
+        :return: build_dict: a dictionary containing results
+        """
 
-        if not os.path.isfile('evaluation.json'):
-            models_dict = [result_dict]
-        else:
-            models_dict = json.load(open('evaluation.json'))
-            models_dict.append(result_dict)
+        build_dict = {
+            'results': self.results,
+            'task': self.task,
+            'dataset': self.dataset_name,
+            'paper_model_name': self.paper_model_name,
+            'paper_arxiv_id': self.paper_arxiv_id,
+            'paper_pwc_id': self.paper_pwc_id,
+            'pytorch_hub_url': self.pytorch_hub_url}
 
-        with open('evaluation.json', 'w') as f:
-            json.dump(models_dict, f, ensure_ascii=False)
+        if os.environ['SOTABENCH_STORE_RESULTS'] == 'True':
 
-    return process_function
+            if not os.path.isfile('evaluation.json'):
+                models_dict = [build_dict]
+            else:
+                models_dict = json.load(open('evaluation.json'))
+                models_dict.append(build_dict)
+
+            with open('evaluation.json', 'w') as f:
+                json.dump(models_dict, f, ensure_ascii=False)
+
+        return build_dict
