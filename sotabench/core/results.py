@@ -8,6 +8,8 @@ import torch.utils.data as data
 class BenchmarkResult:
 
     def __init__(self, task: str,
+                 benchmark,
+                 config: dict,
                  dataset: Union[str, data.Dataset],
                  results: dict,
                  paper_model_name: str = None,
@@ -18,6 +20,8 @@ class BenchmarkResult:
         A class for holding benchmark results for a model
 
         :param task: string describing a task, e.g. "Image Classification"
+        :param benchmark: Object containing the benchmark data and benchmark evaluation method
+        :param config: dict containing inputs to the evaluation function
         :param dataset: either a string for a name, e.g. "CIFAR-10", or a torch.data.Dataset object
         :param results: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
         :param: paper_model_name: (optional) Name of the model that comes from the paper, e.g. 'BERT small'
@@ -27,18 +31,21 @@ class BenchmarkResult:
 
         """
         self.task = task
+        self.benchmark = benchmark
+        self.config = config
         self.results = results
         self.paper_model_name = paper_model_name
         self.paper_arxiv_id = paper_arxiv_id
         self.paper_pwc_id = paper_pwc_id
         self.pytorch_hub_url = pytorch_hub_url
+        self.dataset = dataset
 
-        if isinstance(dataset, str):
-            self.dataset_name = dataset
+        if isinstance(self.dataset, str):
+            self.dataset_name = self.dataset
             self.dataset_obj = None
         else:
-            self.dataset_name = type(dataset).__name__
-            self.dataset_obj = dataset
+            self.dataset_name = type(self.dataset).__name__
+            self.dataset_obj = self.dataset
 
         self.create_json = True if os.environ.get('SOTABENCH_STORE_RESULTS') == 'true' else False
 
@@ -53,8 +60,8 @@ class BenchmarkResult:
         """
 
         build_dict = {
-            'results': self.results,
             'task': self.task,
+            'results': self.results,
             'dataset': self.dataset_name,
             'paper_model_name': self.paper_model_name,
             'paper_arxiv_id': self.paper_arxiv_id,
