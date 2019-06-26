@@ -1,47 +1,38 @@
-import torch
-import torch.nn as nn
+from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
-from sotabench.core import BenchmarkResult, evaluate
+from sotabench.core import BenchmarkResult
+from sotabench.utils import send_model_to_device
 
-from .utils import get_classification_metrics
+from .utils import evaluate_classification
 
-@evaluate
-def benchmark(
-        model,
-        input_transform=None, target_transform=None, model_output_transform=None,
-        is_cuda: bool = True,
-        data_root: str = './.data',
-        num_workers: int = 4, batch_size: int = 128, num_gpu: int = 1,
-        paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
-        pytorch_hub_url: str = None) -> BenchmarkResult:
 
-    if num_gpu > 1:
-        model = torch.nn.DataParallel(model, device_ids=list(range(num_gpu)))
-    else:
-        model = model
+class STL10:
 
-    if is_cuda:
-        model = model.cuda()
+    dataset = datasets.STL10
+    normalize = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    input_transform = transforms.Compose([transforms.ToTensor(), normalize])
 
-    model.eval()
+    @classmethod
+    def benchmark(cls, model, input_transform=None, target_transform=None, model_output_transform=None,
+                  is_cuda: bool = True, data_root: str = './.data', num_workers: int = 4, batch_size: int = 128,
+                  num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
+                  pytorch_hub_url: str = None) -> BenchmarkResult:
 
-    if not input_transform:
-        normalize = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        input_transform = transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-        ])
+        config = locals()
+        model = send_model_to_device(model, is_cuda=is_cuda, num_gpu=num_gpu)
+        model.eval()
 
-    test_dataset = datasets.STL10(data_root, split='test', transform=input_transform, target_transform=target_transform, download=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    metrics = get_classification_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
+        if not input_transform:
+            input_transform = cls.input_transform
 
-    print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=metrics['Top 1 Accuracy'], top5=metrics['Top 5 Accuracy']))
+        test_dataset = cls.dataset(data_root, split='test', transform=input_transform, target_transform=target_transform, download=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+        test_results = evaluate_classification(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
 
-    return BenchmarkResult(
-        task="Image Classification", dataset=test_dataset,
-        metrics=metrics,
-        pytorch_hub_url=pytorch_hub_url,
-        paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
+        print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=test_results['Top 1 Accuracy'], top5=test_results['Top 5 Accuracy']))
+
+        return BenchmarkResult(task="Image Classification", benchmark=cls, config=config, dataset=test_dataset,
+                               results=test_results, pytorch_hub_url=pytorch_hub_url, paper_model_name=paper_model_name,
+                               paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
