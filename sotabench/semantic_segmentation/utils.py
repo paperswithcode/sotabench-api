@@ -5,10 +5,7 @@ import albumentations as albu
 from albumentations.core.transforms_interface import DualTransform
 
 from PIL import Image
-from __future__ import print_function
-from collections import defaultdict, deque
-import datetime
-import time
+from collections import deque
 
 def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     # range(0, 1)
