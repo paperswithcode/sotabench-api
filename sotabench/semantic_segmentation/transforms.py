@@ -124,4 +124,4 @@ class CityscapesMaskConversion(object):
         for k, v in self.id_to_trainid.items():
             mask_copy[mask == k] = v
 
-        return torch.from_numpy(mask_copy).long()
+        return image, mask_copy
