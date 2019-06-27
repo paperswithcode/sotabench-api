@@ -216,6 +216,7 @@ def evaluate_segmentation(model, model_output_transform, test_loader, device='cu
     confmat = ConfusionMatrix(test_loader.num_classes)
 
     with torch.no_grad():
+        print(len(test_loader))
         for i, (input, target) in enumerate(test_loader):
 
             target = target.to(device=device, non_blocking=True)
@@ -228,6 +229,7 @@ def evaluate_segmentation(model, model_output_transform, test_loader, device='cu
                 output = model_output_transform(output, target)
 
             confmat.update(target.flatten(), output.argmax(1).flatten())
+            print(i)
 
     acc_global, acc, iu = confmat.compute()
 
