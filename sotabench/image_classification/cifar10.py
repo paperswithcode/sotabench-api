@@ -36,24 +36,3 @@ class CIFAR10:
         return BenchmarkResult(task="Image Classification", benchmark=cls, config=config, dataset=test_dataset,
                                results=test_results, pytorch_hub_url=pytorch_hub_url, paper_model_name=paper_model_name,
                                paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
-
-
-import boto3
-import os
-
-BUCKET_NAME = 'sotabench'
-OUTPUT_DIR = './.data/'
-
-if not os.path.isdir(OUTPUT_DIR):
-    os.mkdir(OUTPUT_DIR)
-
-s3 = boto3.client('s3')
-list = s3.list_objects(Bucket=BUCKET_NAME)['Contents']
-files = [i for i in s3.list_objects(Bucket='sotabench')['Contents'] if i['Key'][-1] != '/']
-
-for file in files:
-    if 'trainvaltest' not in file['Key']:
-        continue
-    print(file['Key'])
-    output_location = '%s%s' % (OUTPUT_DIR, file['Key'].split('/')[-1])
-    s3.download_file(BUCKET_NAME, file['Key'], output_location)
