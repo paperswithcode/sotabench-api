@@ -3,9 +3,9 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 from sotabench.core import BenchmarkResult
-from sotabench.utils import send_model_to_device, collate_fn
+from sotabench.utils import send_model_to_device
 
-from .utils import evaluate_segmentation, JointCompose, DefaultPascalTransform
+from .utils import collate_fn, evaluate_segmentation, JointCompose, DefaultPascalTransform
 
 
 class PASCALVOC:
