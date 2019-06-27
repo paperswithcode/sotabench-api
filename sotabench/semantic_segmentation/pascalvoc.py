@@ -3,7 +3,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 from sotabench.core import BenchmarkResult
-from sotabench.utils import send_model_to_device
+from sotabench.utils import send_model_to_device, collate_fn
 
 from .utils import evaluate_segmentation, JointCompose, DefaultPascalTransform
 
@@ -29,8 +29,9 @@ class PASCALVOC:
 
         test_dataset = cls.dataset(root=data_root, image_set='val', year=dataset_year, transform=input_transform,
                                    target_transform=target_transform, transforms=transforms, download=True)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-        test_loader.no_classes = 21  # Number of classes for Cityscapes
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True,
+                                 collate_fn=collate_fn)
+        test_loader.no_classes = 21  # Number of classes for PASCAVoc
         test_results = evaluate_segmentation(model=model, model_output_transform=model_output_transform, test_loader=test_loader, device=device)
 
         print(test_results)
