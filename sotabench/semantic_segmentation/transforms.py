@@ -118,7 +118,7 @@ class CityscapesMaskConversion(object):
 
     def __call__(self, image, target):
 
-        mask = np.array(image, dtype=np.int32)
+        mask = np.array(target, dtype=np.int32)
         mask_copy = mask.copy()
 
         for k, v in self.id_to_trainid.items():

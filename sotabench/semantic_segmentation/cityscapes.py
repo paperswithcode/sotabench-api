@@ -12,9 +12,8 @@ from .utils import collate_fn, evaluate_segmentation
 class Cityscapes:
 
     dataset = Cityscapes
-
     normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    transforms = Compose([CityscapesMaskConversion, Resize((520, 480)), ToTensor(), normalize])
+    transforms = Compose([CityscapesMaskConversion(ignore_index=255), Resize((520, 480)), ToTensor(), normalize])
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
