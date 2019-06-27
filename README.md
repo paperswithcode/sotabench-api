@@ -24,7 +24,7 @@ the evaluation output.
 Set the following environment variable in production:
 
 ```bash
-export SOTABENCH_STORE_RESULTS=true
+export SOTABENCH_STORE_FILENAME='evaluation.json'
 ```
 
 
