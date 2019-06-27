@@ -12,7 +12,7 @@ class PASCALVOC:
 
     dataset = datasets.VOCSegmentation
     normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    transforms = Compose([Resize(520, 480), ToTensor(), normalize])
+    transforms = Compose([Resize((520, 480)), ToTensor(), normalize])
 
     @classmethod
     def benchmark(cls, model, dataset_year='2007', input_transform=None, target_transform=None, transforms=None,
