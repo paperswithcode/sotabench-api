@@ -143,8 +143,8 @@ def evaluate_segmentation(model, model_output_transform, test_loader, device='cu
     with torch.no_grad():
         for i, (images, labels) in enumerate(test_loader):
 
-            images = images.to_device(device, non_blocking=True)
-            labels = labels.to_device(device)
+            images = images.to(device=device, non_blocking=True)
+            labels = labels.to(device=device)
 
             # compute output
             output = model(images)

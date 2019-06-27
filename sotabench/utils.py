@@ -50,6 +50,6 @@ def send_model_to_device(model, num_gpu: int = 1, device: str = 'cuda'):
     else:
         model = model
 
-    model = model.to_device(device)
+    model = model.to(device=device)
 
     return model, device

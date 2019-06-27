@@ -14,8 +14,8 @@ def evaluate_classification(model, model_output_transform, test_loader, device='
     with torch.no_grad():
         for i, (input, target) in enumerate(test_loader):
 
-            target = target.to_device(device, non_blocking=True)
-            input = input.to_device(device, non_blocking=True)
+            target = target.to(device=device, non_blocking=True)
+            input = input.to(device=device, non_blocking=True)
 
             # compute output
             output = model(input)
