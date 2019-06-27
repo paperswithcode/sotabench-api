@@ -5,14 +5,14 @@ import torchvision.transforms as transforms
 from sotabench.core import BenchmarkResult
 from sotabench.utils import send_model_to_device
 
-from .utils import collate_fn, evaluate_segmentation, JointCompose, DefaultPascalTransform
-
+from .transforms import Normalize, Resize, ToTensor, Compose
+from .utils import collate_fn, evaluate_segmentation, DefaultPascalTransform
 
 class PASCALVOC:
 
     dataset = datasets.VOCSegmentation
-    normalize = transforms.Normalize(*([103.939, 116.779, 123.68], [1.0, 1.0, 1.0]))
-    transforms = JointCompose([DefaultPascalTransform(target_size=(512, 512), ignore_index=255)])
+    normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    transforms = Compose([Resize(520, 480), ToTensor(), normalize])
 
     @classmethod
     def benchmark(cls, model, dataset_year='2007', input_transform=None, target_transform=None, transforms=None,

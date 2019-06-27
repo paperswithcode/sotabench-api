@@ -1,13 +1,14 @@
 import cv2
 import numpy as np
 import torch
-from torchvision.transforms import transforms
-
 import albumentations as albu
 from albumentations.core.transforms_interface import DualTransform
 
 from PIL import Image
-
+from __future__ import print_function
+from collections import defaultdict, deque
+import datetime
+import time
 
 def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     # range(0, 1)
@@ -101,20 +102,99 @@ class CityscapesMaskConversion(object):
         return torch.from_numpy(mask_copy).long()
 
 
-class JointCompose(transforms.Compose):
+class SmoothedValue(object):
+    """Track a series of values and provide access to smoothed values over a
+    window or the global series average.
+    """
 
-    def __call__(self, img, target):
-        for t in self.transforms:
-            img, target = t(img, target)
-        return img, target
+    def __init__(self, window_size=20, fmt=None):
+        if fmt is None:
+            fmt = "{median:.4f} ({global_avg:.4f})"
+        self.deque = deque(maxlen=window_size)
+        self.total = 0.0
+        self.count = 0
+        self.fmt = fmt
+
+    def update(self, value, n=1):
+        self.deque.append(value)
+        self.count += n
+        self.total += value * n
+
+    @property
+    def median(self):
+        d = torch.tensor(list(self.deque))
+        return d.median().item()
+
+    @property
+    def avg(self):
+        d = torch.tensor(list(self.deque), dtype=torch.float32)
+        return d.mean().item()
+
+    @property
+    def global_avg(self):
+        return self.total / self.count
+
+    @property
+    def max(self):
+        return max(self.deque)
+
+    @property
+    def value(self):
+        return self.deque[-1]
+
+    def __str__(self):
+        return self.fmt.format(
+            median=self.median,
+            avg=self.avg,
+            global_avg=self.global_avg,
+            max=self.max,
+            value=self.value)
 
 
-def _fast_hist(label_pred, label_true, num_classes):
-    mask = (label_true >= 0) & (label_true < num_classes)
-    hist = np.bincount(
-        num_classes * label_true[mask].astype(int) +
-        label_pred[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
-    return hist
+class ConfusionMatrix(object):
+    def __init__(self, num_classes):
+        self.num_classes = num_classes
+        self.mat = None
+
+    def update(self, a, b):
+        n = self.num_classes
+        if self.mat is None:
+            self.mat = torch.zeros((n, n), dtype=torch.int64, device=a.device)
+        with torch.no_grad():
+            k = (a >= 0) & (a < n)
+            inds = n * a[k].to(torch.int64) + b[k]
+            self.mat += torch.bincount(inds, minlength=n**2).reshape(n, n)
+
+    def reset(self):
+        self.mat.zero_()
+
+    def compute(self):
+        h = self.mat.float()
+        acc_global = torch.diag(h).sum() / h.sum()
+        acc = torch.diag(h) / h.sum(1)
+        iu = torch.diag(h) / (h.sum(1) + h.sum(0) - torch.diag(h))
+        return acc_global, acc, iu
+
+    def reduce_from_all_processes(self):
+        if not torch.distributed.is_available():
+            return
+        if not torch.distributed.is_initialized():
+            return
+        torch.distributed.barrier()
+        torch.distributed.all_reduce(self.mat)
+
+    def __str__(self):
+        acc_global, acc, iu = self.compute()
+        return (
+            'global correct: {:.1f}\n'
+            'average row correct: {}\n'
+            'IoU: {}\n'
+            'mean IoU: {:.1f}').format(
+                acc_global.item() * 100,
+                ['{:.1f}'.format(i) for i in (acc * 100).tolist()],
+                ['{:.1f}'.format(i) for i in (iu * 100).tolist()],
+                iu.mean().item() * 100)
+
 
 def cat_list(images, fill_value=0):
     max_size = tuple(max(s) for s in zip(*[img.shape for img in images]))
@@ -124,54 +204,34 @@ def cat_list(images, fill_value=0):
         pad_img[..., :img.shape[-2], :img.shape[-1]].copy_(img)
     return batched_imgs
 
+
 def collate_fn(batch):
     images, targets = list(zip(*batch))
     batched_imgs = cat_list(images, fill_value=0)
     batched_targets = cat_list(targets, fill_value=255)
     return batched_imgs, batched_targets
 
-def segmentation_metrics(predictions, gts, num_classes):
-    hist = np.zeros((num_classes, num_classes))
-    for lp, lt in zip(predictions, gts):
-        hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-    # axis 0: gt, axis 1: prediction
-    acc = np.diag(hist).sum() / hist.sum()
-    acc_cls = np.diag(hist) / hist.sum(axis=1)
-    acc_cls = np.nanmean(acc_cls)
-    iu = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
-    mean_iu = np.nanmean(iu)
-    freq = hist.sum(axis=1) / hist.sum()
-    fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-
-    return {
-        'Accuracy (overall)': acc,
-        'Accuracy (class)': acc_cls,
-        'Mean IoU': mean_iu,
-        'Frequency Weighted Average Accuracy': fwavacc
-    }
-
 def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
-    pred_all = []
-    mask_all = []
+
+    confmat = ConfusionMatrix(test_loader.num_classes)
 
     with torch.no_grad():
-        for i, (images, labels) in enumerate(test_loader):
+        for i, (input, target) in enumerate(test_loader):
 
-            images = images.to(device=device, non_blocking=True)
-            labels = labels.to(device=device)
+            target = target.to(device=device, non_blocking=True)
+            input = input.to(device=device, non_blocking=True)
 
             # compute output
-            output = model(images)
+            output = model(input)
 
             if model_output_transform is not None:
-                output = model_output_transform(output, labels)
+                output = model_output_transform(output, target)
 
-            pred = output.argmax(1).flatten().cpu().numpy()
+            confmat.update(target.flatten(), output.argmax(1).flatten())
 
-            pred_all.append(pred)
-            mask_all.append(labels.data.cpu().numpy())
+    acc_global, acc, iu = confmat.compute()
 
-        mask_all = np.concatenate(mask_all)
-        pred_all = np.concatenate(pred_all)
-
-    return segmentation_metrics(pred_all, mask_all, test_loader.no_classes)
+    return {
+        'Accuracy': acc_global.item() * 100,
+        'Mean IOU': iu.mean().item() * 100
+    }
