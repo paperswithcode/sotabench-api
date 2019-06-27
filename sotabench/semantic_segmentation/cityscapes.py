@@ -17,12 +17,12 @@ class Cityscapes:
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
-                  is_cuda: bool = True, data_root: str = './.data', num_workers: int = 4, batch_size: int = 128,
+                  device: str = 'cuda', data_root: str = './.data', num_workers: int = 4, batch_size: int = 128,
                   num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
                   pytorch_hub_url: str = None) -> BenchmarkResult:
 
         config = locals()
-        model = send_model_to_device(model, is_cuda=is_cuda, num_gpu=num_gpu)
+        model, device = send_model_to_device(model, device=device, num_gpu=num_gpu)
         model.eval()
 
         if not input_transform or target_transform or transforms:
@@ -33,7 +33,7 @@ class Cityscapes:
                                    target_transform=target_transform, transforms=transforms)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
         test_loader.no_classes = 19  # Number of classes for Cityscapes
-        test_results = evaluate_segmentation(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
+        test_results = evaluate_segmentation(model=model, model_output_transform=model_output_transform, test_loader=test_loader, device=device)
 
         print(test_results)
 

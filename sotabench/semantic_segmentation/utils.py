@@ -136,16 +136,15 @@ def segmentation_metrics(predictions, gts, num_classes):
         'Frequency Weighted Average Accuracy': fwavacc
     }
 
-def evaluate_segmentation(model, model_output_transform, test_loader, is_cuda=True):
+def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
     pred_all = []
     mask_all = []
 
     with torch.no_grad():
         for i, (images, labels) in enumerate(test_loader):
 
-            if is_cuda:
-                images = images.cuda(non_blocking=True)
-                labels = labels.cuda()
+            images = images.to_device(device, non_blocking=True)
+            labels = labels.to_device(device)
 
             # compute output
             output = model(images)

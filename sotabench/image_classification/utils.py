@@ -4,7 +4,7 @@ import torch
 from sotabench.utils import AverageMeter, accuracy
 
 
-def evaluate_classification(model, model_output_transform, test_loader, is_cuda=True):
+def evaluate_classification(model, model_output_transform, test_loader, device='cuda'):
     batch_time = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
@@ -14,9 +14,8 @@ def evaluate_classification(model, model_output_transform, test_loader, is_cuda=
     with torch.no_grad():
         for i, (input, target) in enumerate(test_loader):
 
-            if is_cuda:
-                target = target.cuda(non_blocking=True)
-                input = input.cuda()
+            target = target.to_device(device, non_blocking=True)
+            input = input.to_device(device, non_blocking=True)
 
             # compute output
             output = model(input)
