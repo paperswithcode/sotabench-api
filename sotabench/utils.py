@@ -40,14 +40,16 @@ def adjust_learning_rate(learning_rate, optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-def send_model_to_device(model, num_gpu: int = 1, is_cuda: bool = True):
+def send_model_to_device(model, num_gpu: int = 1, device: str = 'cuda'):
     """Sends PyTorch model to a device and returns the model"""
+
+    device = torch.device(device)
+
     if num_gpu > 1:
         model = torch.nn.DataParallel(model, device_ids=list(range(num_gpu)))
     else:
         model = model
 
-    if is_cuda:
-        model = model.cuda()
+    model = model.to(device=device)
 
-    return model
+    return model, device

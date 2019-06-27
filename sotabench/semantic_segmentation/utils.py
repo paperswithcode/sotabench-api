@@ -1,13 +1,11 @@
 import cv2
 import numpy as np
 import torch
-from torchvision.transforms import transforms
-
 import albumentations as albu
 from albumentations.core.transforms_interface import DualTransform
 
 from PIL import Image
-
+from collections import deque
 
 def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     # range(0, 1)
@@ -46,119 +44,89 @@ class PadIfNeededRightBottom(DualTransform):
         return np.pad(img, ((0, pad_height), (0, pad_width)), 'constant', constant_values=self.ignore_index)
 
 
-class DefaultPascalTransform(object):
-    """Applies standard Pascal Transforms"""
+class ConfusionMatrix(object):
+    def __init__(self, num_classes):
+        self.num_classes = num_classes
+        self.mat = None
 
-    def __init__(self, target_size, ignore_index):
-        assert isinstance(target_size, tuple)
-        self.target_size = target_size
-        self.ignore_index = ignore_index
+    def update(self, a, b):
+        n = self.num_classes
+        if self.mat is None:
+            self.mat = torch.zeros((n, n), dtype=torch.int64, device=a.device)
+        with torch.no_grad():
+            k = (a >= 0) & (a < n)
+            inds = n * a[k].to(torch.int64) + b[k]
+            self.mat += torch.bincount(inds, minlength=n**2).reshape(n, n)
 
-    def __call__(self, img, target):
-        img = np.array(img)
-        target = np.array(target)
-        target[target == self.ignore_index] = 0
-        # target[target == 255] = 0
+    def reset(self):
+        self.mat.zero_()
 
-        resizer = albu.Compose([PadIfNeededRightBottom(min_height=self.target_size[0], min_width=self.target_size[1],
-                                                       value=0,
-                                                       ignore_index=self.ignore_index, p=1.0),
-                                albu.Crop(x_min=0, x_max=self.target_size[1],
-                                          y_min=0, y_max=self.target_size[0])])
+    def compute(self):
+        h = self.mat.float()
+        acc_global = torch.diag(h).sum() / h.sum()
+        acc = torch.diag(h) / h.sum(1)
+        iu = torch.diag(h) / (h.sum(1) + h.sum(0) - torch.diag(h))
+        return acc_global, acc, iu
 
-        img = minmax_normalize(img, norm_range=(-1, 1))
-        resized = resizer(image=img, mask=target)
-        img = resized['image']
-        target = resized['mask']
-        img = img.transpose(2, 0, 1)
+    def reduce_from_all_processes(self):
+        if not torch.distributed.is_available():
+            return
+        if not torch.distributed.is_initialized():
+            return
+        torch.distributed.barrier()
+        torch.distributed.all_reduce(self.mat)
 
-        img = torch.FloatTensor(img)
-        target = torch.LongTensor(target)
-
-        return img, target
-
-
-class CityscapesMaskConversion(object):
-    """Converts Cityscape masks - adds an ignore index"""
-
-    def __init__(self, ignore_index):
-        self.ignore_index = ignore_index
-
-        self.id_to_trainid = {-1: ignore_index, 0: ignore_index, 1: ignore_index, 2: ignore_index, 3: ignore_index,
-                              4: ignore_index, 5: ignore_index, 6: ignore_index, 7: 0, 8: 1, 9: ignore_index,
-                              10: ignore_index, 11: 2, 12: 3, 13: 4, 14: ignore_index, 15: ignore_index, 16: ignore_index,
-                              17: 5, 18: ignore_index, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14,
-                              28: 15, 29: ignore_index, 30: ignore_index, 31: 16, 32: 17, 33: 18}
-
-    def __call__(self, img):
-
-        mask = np.array(img, dtype=np.int32)
-        mask_copy = mask.copy()
-
-        for k, v in self.id_to_trainid.items():
-            mask_copy[mask == k] = v
-
-        return torch.from_numpy(mask_copy).long()
+    def __str__(self):
+        acc_global, acc, iu = self.compute()
+        return (
+            'global correct: {:.1f}\n'
+            'average row correct: {}\n'
+            'IoU: {}\n'
+            'mean IoU: {:.1f}').format(
+                acc_global.item() * 100,
+                ['{:.1f}'.format(i) for i in (acc * 100).tolist()],
+                ['{:.1f}'.format(i) for i in (iu * 100).tolist()],
+                iu.mean().item() * 100)
 
 
-class JointCompose(transforms.Compose):
+def cat_list(images, fill_value=0):
+    max_size = tuple(max(s) for s in zip(*[img.shape for img in images]))
+    batch_shape = (len(images),) + max_size
+    batched_imgs = images[0].new(*batch_shape).fill_(fill_value)
+    for img, pad_img in zip(images, batched_imgs):
+        pad_img[..., :img.shape[-2], :img.shape[-1]].copy_(img)
+    return batched_imgs
 
-    def __call__(self, img, target):
-        for t in self.transforms:
-            img, target = t(img, target)
-        return img, target
 
+def collate_fn(batch):
+    images, targets = list(zip(*batch))
+    batched_imgs = cat_list(images, fill_value=0)
+    batched_targets = cat_list(targets, fill_value=255)
+    return batched_imgs, batched_targets
 
-def _fast_hist(label_pred, label_true, num_classes):
-    mask = (label_true >= 0) & (label_true < num_classes)
-    hist = np.bincount(
-        num_classes * label_true[mask].astype(int) +
-        label_pred[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
-    return hist
+def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
 
-def segmentation_metrics(predictions, gts, num_classes):
-    hist = np.zeros((num_classes, num_classes))
-    for lp, lt in zip(predictions, gts):
-        hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-    # axis 0: gt, axis 1: prediction
-    acc = np.diag(hist).sum() / hist.sum()
-    acc_cls = np.diag(hist) / hist.sum(axis=1)
-    acc_cls = np.nanmean(acc_cls)
-    iu = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
-    mean_iu = np.nanmean(iu)
-    freq = hist.sum(axis=1) / hist.sum()
-    fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-
-    return {
-        'Accuracy (overall)': acc,
-        'Accuracy (class)': acc_cls,
-        'Mean IoU': mean_iu,
-        'Frequency Weighted Average Accuracy': fwavacc
-    }
-
-def evaluate_segmentation(model, model_output_transform, test_loader, is_cuda=True):
-    pred_all = []
-    mask_all = []
+    confmat = ConfusionMatrix(test_loader.no_classes)
 
     with torch.no_grad():
-        for i, (images, labels) in enumerate(test_loader):
+        for i, (input, target) in enumerate(test_loader):
 
-            if is_cuda:
-                images = images.cuda(non_blocking=True)
-                labels = labels.cuda()
+            target = target.to(device=device, non_blocking=True)
+            input = input.to(device=device, non_blocking=True)
 
             # compute output
-            output = model(images)
+            output = model(input)
 
             if model_output_transform is not None:
-                output = model_output_transform(output, labels)
+                output = model_output_transform(output, target)
+            elif test_loader.no_classes == 21: # VOC/COCO
+                output = output['out'] # default torchvision extraction method
 
-            pred = output.data.max(1)[1].cpu().numpy()
+            confmat.update(target.flatten(), output.argmax(1).flatten())
 
-            pred_all.append(pred)
-            mask_all.append(labels.data.cpu().numpy())
+    acc_global, acc, iu = confmat.compute()
 
-        mask_all = np.concatenate(mask_all)
-        pred_all = np.concatenate(pred_all)
-
-    return segmentation_metrics(pred_all, mask_all, test_loader.no_classes)
+    return {
+        'Accuracy': acc_global.item() * 100,
+        'Mean IOU': iu.mean().item() * 100
+    }
