@@ -47,7 +47,7 @@ class BenchmarkResult:
             self.dataset_name = type(self.dataset).__name__
             self.dataset_obj = self.dataset
 
-        self.create_json = True if os.environ.get('SOTABENCH_STORE_RESULTS') == 'true' else False
+        self.create_json = True if os.environ.get('SOTABENCH_STORE_FILENAME') else False
 
         self.evaluate()
 
@@ -69,14 +69,15 @@ class BenchmarkResult:
             'pytorch_hub_url': self.pytorch_hub_url}
 
         if self.create_json:
+            file_name = os.environ.get('SOTABENCH_STORE_FILENAME')
 
-            if not os.path.isfile('evaluation.json'):
+            if not os.path.isfile(file_name):
                 models_dict = [build_dict]
             else:
-                models_dict = json.load(open('evaluation.json'))
+                models_dict = json.load(open(file_name))
                 models_dict.append(build_dict)
 
-            with open('evaluation.json', 'w') as f:
+            with open(file_name, 'w') as f:
                 json.dump(models_dict, f, ensure_ascii=False)
 
         return build_dict
