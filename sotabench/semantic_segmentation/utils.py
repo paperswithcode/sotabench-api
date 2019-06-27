@@ -210,7 +210,7 @@ def collate_fn(batch):
 
 def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
 
-    confmat = ConfusionMatrix(test_loader.num_classes)
+    confmat = ConfusionMatrix(test_loader.no_classes)
 
     with torch.no_grad():
         print(len(test_loader))
