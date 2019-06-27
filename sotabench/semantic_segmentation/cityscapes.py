@@ -1,5 +1,4 @@
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 
 from sotabench.core import BenchmarkResult
 from sotabench.datasets.cityscapes import Cityscapes
