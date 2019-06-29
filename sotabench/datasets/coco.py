@@ -2,8 +2,8 @@ import torchvision
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):
-    def __init__(self, root, annFile, transforms):
-        super(CocoDetection, self).__init__(root, annFile)
+    def __init__(self, root, annFile, transforms, **kwargs):
+        super(CocoDetection, self).__init__(root, annFile, **kwargs)
         self._transforms = transforms
 
     def __getitem__(self, idx):
