@@ -7,6 +7,7 @@ from sotabench.utils import send_model_to_device
 from .transforms import Normalize, Resize, ToTensor, Compose
 from .utils import collate_fn, evaluate_segmentation
 
+
 class PASCALVOC:
 
     dataset = datasets.VOCSegmentation

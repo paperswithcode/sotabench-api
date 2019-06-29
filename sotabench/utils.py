@@ -1,5 +1,6 @@
 import torch
 
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
@@ -20,7 +21,7 @@ class AverageMeter(object):
 
 
 def accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k"""
+    """Computes precision@k for the specified values of k"""
     maxk = max(topk)
     batch_size = target.size(0)
 
@@ -34,11 +35,6 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-def adjust_learning_rate(learning_rate, optimizer, epoch):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = learning_rate * (0.1 ** (epoch // 30))
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
 
 def send_model_to_device(model, num_gpu: int = 1, device: str = 'cuda'):
     """Sends PyTorch model to a device and returns the model"""

@@ -1,11 +1,10 @@
 import cv2
 import numpy as np
 import torch
-import albumentations as albu
 from albumentations.core.transforms_interface import DualTransform
 
 from PIL import Image
-from collections import deque
+
 
 def minmax_normalize(img, norm_range=(0, 1), orig_range=(0, 255)):
     # range(0, 1)
@@ -104,8 +103,8 @@ def collate_fn(batch):
     batched_targets = cat_list(targets, fill_value=255)
     return batched_imgs, batched_targets
 
-def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
 
+def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
     confmat = ConfusionMatrix(test_loader.no_classes)
 
     with torch.no_grad():
@@ -119,8 +118,8 @@ def evaluate_segmentation(model, model_output_transform, test_loader, device='cu
 
             if model_output_transform is not None:
                 output = model_output_transform(output, target)
-            elif test_loader.no_classes == 21: # VOC/COCO
-                output = output['out'] # default torchvision extraction method
+            elif test_loader.no_classes == 21:  # VOC/COCO
+                output = output['out']  # default torchvision extraction method
 
             confmat.update(target.flatten(), output.argmax(1).flatten())
 

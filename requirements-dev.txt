@@ -1,8 +1,8 @@
-albumentations
+albumentations>=0.3.0
 mkdocs
 mkdocs-material
 numpy
-opencv-python
-pycocotools
-torch==1.1.0
-torchvision==0.3.0
+opencv-python>=4.1.0.25
+pycocotools>=2.0.0
+torch>=1.1.0
+torchvision>=0.3.0

@@ -7,8 +7,10 @@ from pycocotools.coco import COCO
 
 from .coco_eval import CocoEvaluator
 
+
 def collate_fn(batch):
     return tuple(zip(*batch))
+
 
 def convert_to_coco_api(ds):
     coco_ds = COCO()
@@ -60,6 +62,7 @@ def convert_to_coco_api(ds):
     coco_ds.createIndex()
     return coco_ds
 
+
 def get_coco_api_from_dataset(dataset):
     for _ in range(10):
         if isinstance(dataset, torchvision.datasets.CocoDetection):
@@ -69,6 +72,7 @@ def get_coco_api_from_dataset(dataset):
     if isinstance(dataset, torchvision.datasets.CocoDetection):
         return dataset.coco
     return convert_to_coco_api(dataset)
+
 
 def _get_iou_types(model):
     model_without_ddp = model
@@ -80,6 +84,7 @@ def _get_iou_types(model):
     if isinstance(model_without_ddp, torchvision.models.detection.KeypointRCNN):
         iou_types.append("keypoints")
     return iou_types
+
 
 def get_coco_metrics(coco_evaluator):
 
@@ -111,6 +116,7 @@ def get_coco_metrics(coco_evaluator):
 
     return metrics
 
+
 def evaluate_detection_coco(model, model_output_transform, test_loader, device='cuda'):
 
     coco = get_coco_api_from_dataset(test_loader.dataset)
@@ -118,9 +124,7 @@ def evaluate_detection_coco(model, model_output_transform, test_loader, device='
     coco_evaluator = CocoEvaluator(coco, iou_types)
 
     with torch.no_grad():
-        print(len(test_loader))
         for i, (input, target) in enumerate(test_loader):
-            print(i)
             input = list(inp.to(device=device, non_blocking=True) for inp in input)
             target = [{k: v.to(device=device, non_blocking=True) for k, v in t.items()} for t in target]
 
@@ -129,7 +133,7 @@ def evaluate_detection_coco(model, model_output_transform, test_loader, device='
 
             if model_output_transform is not None:
                 output = model_output_transform(output, target)
-            elif test_loader.no_classes == 91: # COCO
+            elif test_loader.no_classes == 91:  # COCO
                 output = [{k: v.to('cpu') for k, v in t.items()} for t in output]  # default torchvision extraction
 
             result = {tar["image_id"].item(): out for tar, out in zip(target, output)}
