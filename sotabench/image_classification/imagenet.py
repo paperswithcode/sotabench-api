@@ -17,7 +17,7 @@ class ImageNet:
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, model_output_transform=None,
-                  device: str = 'cuda', data_root: str = './.data', num_workers: int = 4, batch_size: int = 128,
+                  device: str = 'cuda', data_root: str = './.data/vision/imagenet/', num_workers: int = 4, batch_size: int = 128,
                   num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
                   pytorch_hub_url: str = None) -> BenchmarkResult:
 
