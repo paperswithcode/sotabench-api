@@ -104,7 +104,7 @@ class Normalize(object):
         return image, target
 
 
-class CityscapesMaskConversion(object):
+class ConvertCityscapesIds(object):
     """Converts Cityscape masks - adds an ignore index"""
 
     def __init__(self, ignore_index):
@@ -118,10 +118,9 @@ class CityscapesMaskConversion(object):
 
     def __call__(self, image, target):
 
-        mask = np.array(target, dtype=np.int32)
-        mask_copy = mask.copy()
+        target_copy = target.clone()
 
         for k, v in self.id_to_trainid.items():
-            mask_copy[mask == k] = v
+            target_copy[target == k] = v
 
-        return image, Image.fromarray(mask_copy)
+        return image, target_copy

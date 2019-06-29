@@ -4,7 +4,7 @@ from sotabench.core import BenchmarkResult
 from sotabench.datasets.cityscapes import Cityscapes
 from sotabench.utils import send_model_to_device
 
-from .transforms import CityscapesMaskConversion, Normalize, Resize, ToTensor, Compose
+from .transforms import ConvertCityscapesIds, Normalize, Resize, ToTensor, Compose
 from .utils import collate_fn, evaluate_segmentation
 
 
@@ -12,11 +12,11 @@ class Cityscapes:
 
     dataset = Cityscapes
     normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    transforms = Compose([CityscapesMaskConversion(ignore_index=255), Resize((520, 480)), ToTensor(), normalize])
+    transforms = Compose([ToTensor(), ConvertCityscapesIds(), normalize])
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
-                  device: str = 'cuda', data_root: str = './.data/vision/cityscapes', num_workers: int = 4, batch_size: int = 128,
+                  device: str = 'cuda', data_root: str = './.data/vision/cityscapes', num_workers: int = 4, batch_size: int = 32,
                   num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
                   pytorch_hub_url: str = None) -> BenchmarkResult:
 

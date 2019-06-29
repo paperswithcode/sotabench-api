@@ -1,56 +1,42 @@
-import torch
-import torchvision
+import os
+from torch.utils.data import DataLoader
+import torchvision.datasets as datasets
 
-from sotabench.datasets.coco import COCODataset
-from sotabench.core import BenchmarkResult, evaluate
+from sotabench.core import BenchmarkResult
+from sotabench.utils import send_model_to_device
+
+from .transforms import Compose, ConvertCocoPolysToMask, ToTensor
+from .utils import collate_fn, evaluate_detection_coco
 
 
-@evaluate
-def benchmark(
-        model,
-        input_transform=None, target_transform=None, transforms=None,
-        prediction_transform=None, model_output_transform=None,
-        is_cuda: bool = True,
-        data_root: str = './.data',
-        num_workers: int = 4, batch_size: int = 8, num_gpu: int = 1,
-        paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
-        pytorch_hub_url: str = None) -> BenchmarkResult:
+class Cityscapes:
 
-    if num_gpu > 1:
-        model = torch.nn.DataParallel(model, device_ids=list(range(num_gpu)))
-    else:
-        model = model
+    dataset = datasets.COCODetection
+    transforms = Compose([ConvertCocoPolysToMask(), ToTensor()])
 
-    if is_cuda:
-        model = model.cuda()
+    @classmethod
+    def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
+                  device: str = 'cuda', data_root: str = './.data/vision/coco', num_workers: int = 4, batch_size: int = 1,
+                  num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
+                  pytorch_hub_url: str = None) -> BenchmarkResult:
 
-    model.eval()
+        config = locals()
+        model, device = send_model_to_device(model, device=device, num_gpu=num_gpu)
+        model.eval()
 
-    if not input_transform or target_transform or transforms:
-        mean_std = ([103.939, 116.779, 123.68], [1.0, 1.0, 1.0])
+        if not input_transform or target_transform or transforms:
+            transforms = cls.transforms
 
-        input_transform = torchvision.transforms.Compose([
-            FlipChannels(),
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Lambda(lambda x: x.mul_(255)),
-            torchvision.transforms.Normalize(*mean_std)
-        ])
+        test_dataset = cls.dataset(root=os.path.join(data_root, 'val2017'),
+                                   annFile=os.path.join(data_root, 'annotations/instances_val2017.json'), split='val',
+                                   transform=input_transform, target_transform=target_transform, transforms=transforms)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True,
+                                 collate_fn=collate_fn)
+        test_loader.no_classes = 91  # Number of classes for COCO Detection
+        test_results = evaluate_detection_coco(model=model, model_output_transform=model_output_transform, test_loader=test_loader, device=device)
 
-        target_transform = torchvision.transforms.Compose([
-            CityscapesMaskConversion(ignore_index=255)])
+        print(test_results)
 
-    test_dataset = Cityscapes(root=data_root, split='val', target_type='semantic', transform=input_transform,
-                                       target_transform=target_transform, transforms=transforms)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    test_loader.no_classes = 19 # Number of classes for Cityscapes
-
-    metrics = get_segmentation_metrics(model=model, model_output_transform=model_output_transform, test_loader=test_loader, is_cuda=is_cuda)
-
-    print(metrics)
-
-    return BenchmarkResult(
-        task="Semantic Segmentation", dataset=test_dataset,
-        metrics=metrics,
-        pytorch_hub_url=pytorch_hub_url,
-        paper_model_name=paper_model_name, paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
-
+        return BenchmarkResult(task="Object Detection", benchmark=cls, config=config, dataset=test_dataset,
+                               results=test_results, pytorch_hub_url=pytorch_hub_url, paper_model_name=paper_model_name,
+                               paper_arxiv_id=paper_arxiv_id, paper_pwc_id=paper_pwc_id)
