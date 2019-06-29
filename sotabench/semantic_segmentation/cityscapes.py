@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 
 from sotabench.core import BenchmarkResult
-from sotabench.datasets.cityscapes import Cityscapes
+from sotabench.datasets import Cityscapes
 from sotabench.utils import send_model_to_device
 
 from .transforms import ConvertCityscapesIds, Normalize, Resize, ToTensor, Compose
