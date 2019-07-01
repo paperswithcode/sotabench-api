@@ -70,7 +70,8 @@ ImageNet.benchmark(
 ```
 
 We provide a free server to evaluate against paper results. Put your code into github, and then submit your github
-repository to [sotabench.com](https://sotabench.com) and it will be automatically built and compared to the paper. 
+repository to [sotabench.com](https://sotabench.com) and it will be automatically built, record the results and compare 
+them to the paper. 
 
 ## TODO docs
 
