@@ -40,9 +40,7 @@ input_transform = transforms.Compose([
 # Run evaluation
 ImageNet.benchmark(
     model=model,
-    input_transform=input_transform,
-    batch_size=256,
-    num_gpu=1
+    input_transform=input_transform
 )
 
 ```
@@ -60,14 +58,12 @@ In the example above we've just evaluated the EfficientNet implementation, but w
 To compare to a paper, add the names of the model and paper into the benchmark call:
 
 ```python
-# Run evaluation
+# Run evaluation and compare to paper
 ImageNet.benchmark(
     model=model,
     input_transform=input_transform,
-    batch_size=256,
-    num_gpu=1,
     paper_model_name='EfficientNet-B0',
-    paper_arxiv_id='1905.11946',
+    paper_arxiv_id='1905.11946'
 )
 ```
 
