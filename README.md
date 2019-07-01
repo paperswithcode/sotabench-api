@@ -85,6 +85,3 @@ them to the paper.
     export SOTABENCH_STORE_FILENAME='evaluation.json'
     ```
 
-# Licence
-
-Apache-2. 
