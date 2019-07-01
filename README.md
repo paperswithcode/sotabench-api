@@ -12,7 +12,7 @@ pip install git+ssh://github.com/paperswithcode/sotabench#egg=sotabench
 
 ## Example Usage
 
-To benchmark a model create a `benchmark.py` file. For example, to benchmark the EfficientNet model on Image Classification: 
+To benchmark a model create a `benchmark.py` file. For example, to benchmark the EfficientNet model on image classification on ImageNet:
 
 ```python
 from sotabench.image_classification import ImageNet
@@ -72,17 +72,17 @@ ImageNet.benchmark(
 We provide a free server to evaluate against paper results. Put your code into github, and then submit your github
 repository to [sotabench.com](https://sotabench.com) and it will be automatically built and compared to the paper. 
 
-## TODO
+## TODO docs
 
-API reference manual, more examples
+[work in progress docs](docs/).
 
-Environment variables:
+- Tutorial: step-by-step with exploring benchmarks and transforms 
+- API reference manual
+- Settings and env variables, e.g. to capture all output in JSON:
 
-```bash
-export SOTABENCH_STORE_FILENAME='evaluation.json'
-```
-
-Set this variable to capture all the results in a json file instead of stdout. 
+    ```bash
+    export SOTABENCH_STORE_FILENAME='evaluation.json'
+    ```
 
 # Licence
 
