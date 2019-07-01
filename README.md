@@ -2,6 +2,8 @@
 
 Easily benchmark PyTorch models on selected tasks and datasets.
 
+*Work in progress version*
+
 ## Installation
 
 Requires Python 3.6+. 
