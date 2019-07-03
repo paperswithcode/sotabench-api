@@ -12,7 +12,7 @@ class Cityscapes:
 
     dataset = Cityscapes
     normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    transforms = Compose([ToTensor(), ConvertCityscapesIds(), normalize])
+    transforms = Compose([ToTensor(), ConvertCityscapesIds(ignore_index=255), normalize])
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
