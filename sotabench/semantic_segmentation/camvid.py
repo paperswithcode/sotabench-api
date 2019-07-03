@@ -1,22 +1,22 @@
 from torch.utils.data import DataLoader
 
 from sotabench.core import BenchmarkResult
-from sotabench.datasets import Cityscapes
+from sotabench.datasets import CamVid
 from sotabench.utils import send_model_to_device
 
-from .transforms import ConvertCityscapesIds, Normalize, ToTensor, Compose
+from .transforms import Normalize, ToTensor, Compose
 from .utils import collate_fn, evaluate_segmentation
 
 
-class Cityscapes:
+class CamVid:
 
-    dataset = Cityscapes
+    dataset = CamVid
     normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    transforms = Compose([ToTensor(), ConvertCityscapesIds(ignore_index=255), normalize])
+    transforms = Compose([ToTensor(), normalize])
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, transforms=None, model_output_transform=None,
-                  device: str = 'cuda', data_root: str = './.data/vision/cityscapes', num_workers: int = 4, batch_size: int = 32,
+                  device: str = 'cuda', data_root: str = './.data/vision/camvid', num_workers: int = 4, batch_size: int = 32,
                   num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None, paper_pwc_id: str = None,
                   pytorch_hub_url: str = None) -> BenchmarkResult:
 
@@ -27,11 +27,11 @@ class Cityscapes:
         if not input_transform or target_transform or transforms:
             transforms = cls.transforms
 
-        test_dataset = cls.dataset(root=data_root, split='val', target_type='semantic', transform=input_transform,
+        test_dataset = cls.dataset(root=data_root, split='val', transform=input_transform,
                                    target_transform=target_transform, transforms=transforms)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True,
                                  collate_fn=collate_fn)
-        test_loader.no_classes = 19  # Number of classes for Cityscapes
+        test_loader.no_classes = 12  # Number of classes for CamVid
         test_results = evaluate_segmentation(model=model, model_output_transform=model_output_transform, test_loader=test_loader, device=device)
 
         print(test_results)

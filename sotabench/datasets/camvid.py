@@ -47,14 +47,14 @@ class CamVid(VisionDataset):
         CamVidClass('building', 1, (128, 0, 0)),
         CamVidClass('pole', 2, (192, 192, 128)),
         CamVidClass('road', 3, (128, 64, 128)),
-        CamVidClass('road_marking', 4, (255, 69, 0)),
+        CamVidClass('pavement', 4, (60, 40, 222)),
         CamVidClass('tree', 5, (128, 128, 0)),
         CamVidClass('sign_symbol', 6, (192, 128, 128)),
         CamVidClass('fence', 7, (64, 64, 128)),
         CamVidClass('car', 8, (64, 0, 128)),
         CamVidClass('pedestrian', 9, (64, 64, 0)),
         CamVidClass('bicyclist', 10, (0, 128, 192)),
-        CamVidClass('pavement', 11, (60, 40, 222)),
+        CamVidClass('unlabelled', 11, (0, 0, 0)),
     ]
 
     def __init__(self, root, split='train', transform=None, target_transform=None, transforms=None):
