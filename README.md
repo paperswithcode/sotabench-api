@@ -2,72 +2,84 @@
 
 Easily benchmark PyTorch models on selected tasks and datasets.
 
+*Work in progress version*
+
+## Installation
+
+Requires Python 3.6+. 
+
+```bash
+pip install git+ssh://github.com/paperswithcode/sotabench#egg=sotabench
+```
+
 ## Example Usage
 
+To benchmark a model create a `benchmark.py` file. For example, to benchmark the EfficientNet model on image classification on ImageNet:
+
 ```python
-import sotabench.image_classification.cifar10 as cifar10
+from sotabench.image_classification import ImageNet
+import torch
+import torchvision.transforms as transforms
+import PIL
 
-# model = ... (returns a nn.Module object)
+# load the model
+model = torch.hub.load('rwightman/gen-efficientnet-pytorch', 
+                       'efficientnet_b0', 
+                       pretrained=True)
 
-cifar10.benchmark(model=model)
-# returns a dictionary with evaluation information
+# transform ImageNet data into the format the model takes
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                 std=[0.229, 0.224, 0.225])
+input_transform = transforms.Compose([
+    transforms.Resize(256, PIL.Image.BICUBIC),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    normalize,
+])
+
+# Run evaluation
+ImageNet.benchmark(
+    model=model,
+    input_transform=input_transform
+)
+
 ```
 
-## How to run in context of an example repository
-
-Clone the example repository and repo into it. You should see a hubconf.py file; this
-will contain an sotabench call (like above) - this is what you need to run to capture
-the evaluation output.
-
-## Making sure evaluation creates a json
-
-Set the following environment variable in production:
+You can run the evaluation by running the file:
 
 ```bash
-export SOTABENCH_STORE_FILENAME='evaluation.json'
+python benchmark.py
 ```
 
+### Comparing to a paper
 
-## Prepopulated Data Cache
+In the example above we've just evaluated the EfficientNet implementation, but we can also directly compare it to the results reported in the paper. 
 
-When the evaluation script is run, it typically includes a PyTorch Dataset 
-class which attempts to download a raw file. These raw files can be quite 
-big (GBs). But these classes will check whether files have already been downloaded.
-Therefore we can prepopulate the data folder with the raw files, so we don't
-have to download every time (which can take a long time).
+To compare to a paper, add the names of the model and paper into the benchmark call:
 
-The standard data root directory I am assuming is `./data` - this will be in the 
-same folder where the evaluation script is.
-
-In order to prepopulate, I have made a S3 bucket with lots of raw data files that
-are used by PyTorch Dataset classes. Install the following:
-
-```bash
-pip install awscli
-pip install boto3
+```python
+# Run evaluation and compare to paper
+ImageNet.benchmark(
+    model=model,
+    input_transform=input_transform,
+    paper_model_name='EfficientNet-B0',
+    paper_arxiv_id='1905.11946'
+)
 ```
 
-Then configure with aws configure (get your access keys from AWS console).
-Here is a script for getting the data - feel free to put wherever you think is best
-on the server. Just bear in mind the evaluation script will look in the same place for
-the data folder, so might need to move folder to same place temporarily. 
+We provide a free server to evaluate against paper results. Put your code into github, and then submit your github
+repository to [sotabench.com](https://sotabench.com) and it will be automatically built, record the results and compare 
+them to the paper. 
 
-```
-import boto3
-import os
+## TODO docs
 
-BUCKET_NAME = 'sotabench'
-OUTPUT_DIR = './data/'
+[work in progress docs](docs/).
 
-if not os.path.isdir(OUTPUT_DIR):
-    os.mkdir(OUTPUT_DIR)
+- Tutorial: step-by-step with exploring benchmarks and transforms 
+- API reference manual
+- Settings and env variables, e.g. to capture all output in JSON:
 
-s3 = boto3.client('s3')
-list = s3.list_objects(Bucket=BUCKET_NAME)['Contents']
-files = [i for i in s3.list_objects(Bucket='sotabench')['Contents'] if i['Key'][-1] != '/']
+    ```bash
+    export SOTABENCH_STORE_FILENAME='evaluation.json'
+    ```
 
-for file in files:
-    print(file['Key'])
-    output_location = '%s%s' % (OUTPUT_DIR, file['Key'].split('/')[-1])
-    s3.download_file(BUCKET_NAME, file['Key'], output_location)
-```
