@@ -8,15 +8,17 @@ from sotabench.utils import send_model_to_device
 from .utils import evaluate_image_generation_gan
 
 
-class CIFAR10:
+class ImageNet:
 
-    dataset = datasets.CIFAR10
-    normalize = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    dataset = datasets.ImageNet
+    norm_mean = [2 * p - 1 for p in [0.485, 0.456, 0.406]]
+    norm_std = [2 * p for p in [0.229, 0.224, 0.225]]
+    normalize = transforms.Normalize(mean=norm_mean, std=norm_std)
     input_transform = transforms.Compose([transforms.ToTensor(), normalize])
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, model_output_transform=None,
-                  device: str = 'cuda', data_root: str = './.data/vision/cifar10', num_workers: int = 4,
+                  device: str = 'cuda', data_root: str = './.data/vision/imagenet', num_workers: int = 4,
                   batch_size: int = 8, num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None,
                   paper_pwc_id: str = None, pytorch_hub_url: str = None) -> BenchmarkResult:
 

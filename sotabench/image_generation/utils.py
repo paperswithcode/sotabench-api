@@ -231,7 +231,7 @@ def evaluate_image_generation_gan(model, model_output_transform, test_loader, de
     :return: Dictionary with keys as metric keys, and values as metric values
     """
 
-    num_images = 500
+    num_images = 50000
 
     noise, _ = model.buildNoiseData(num_images)
     noise_dataloader = torch.utils.data.DataLoader(noise, batch_size=test_loader.batch_size)
