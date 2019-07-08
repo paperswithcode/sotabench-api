@@ -22,7 +22,9 @@ class CIFAR10:
 
         config = locals()
         model, device = send_model_to_device(model, device=device, num_gpu=num_gpu)
-        model.eval()
+
+        if hasattr(model, 'eval'):
+            model.eval()
 
         if not input_transform:
             input_transform = cls.input_transform
