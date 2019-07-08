@@ -29,7 +29,7 @@ class COCO:
 
         test_dataset = cls.dataset(root=os.path.join(data_root, 'val%s' % dataset_year),
                                    annFile=os.path.join(data_root, 'annotations/instances_val%s.json' % dataset_year),
-                                   transform=input_transform, target_transform=target_transform, transforms=transforms)
+                                   transform=input_transform, target_transform=target_transform, transforms=transforms, download=True)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True,
                                  collate_fn=collate_fn)
         test_loader.no_classes = 91  # Number of classes for COCO Detection
