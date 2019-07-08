@@ -16,6 +16,7 @@ setup(
               'sotabench.core',
               'sotabench.datasets',
               'sotabench.image_classification',
+              'sotabench.image_generation',
               'sotabench.object_detection',
               'sotabench.semantic_segmentation'],
     include_package_data=True,
