@@ -2,16 +2,16 @@ from setuptools import setup
 
 PACKAGE_NAME = "sotabench"
 LICENSE = "Apache 2.0"
-AUTHOR = "Atlas ML"
-EMAIL = "ross@atlasml.io"
-URL = "https://www.atlas.ml"
-DESCRIPTION = "Benchmarking open source deep learning models"
+AUTHOR = "rstojnic"
+EMAIL = "hello@sotabench.com"
+URL = "https://sotabench.com"
+DESCRIPTION = "Easily benchmark Machine Learning models on selected tasks and datasets"
 
 
 setup(
     name=PACKAGE_NAME,
     maintainer=AUTHOR,
-    version='0.001',
+    version='0.0.2',
     packages=[PACKAGE_NAME,
               'sotabench.core',
               'sotabench.datasets',
