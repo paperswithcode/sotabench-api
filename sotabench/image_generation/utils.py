@@ -230,11 +230,13 @@ def evaluate_image_generation_gan(model, model_output_transform, test_loader, de
     :param device: to perform the evaluation (e.g. 'cuda' for GPU)
     :return: Dictionary with keys as metric keys, and values as metric values
     """
-    num_images = 50000
+
+    num_images = 500
 
     noise, _ = model.buildNoiseData(num_images)
     noise_dataloader = torch.utils.data.DataLoader(noise, batch_size=test_loader.batch_size)
 
+    output = None
     with torch.no_grad():
         for i, noise_batch in enumerate(noise_dataloader):
             partial_output = model.test(noise_batch).to(device=device)
