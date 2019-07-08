@@ -46,6 +46,10 @@ def send_model_to_device(model, num_gpu: int = 1, device: str = 'cuda'):
     else:
         model = model
 
-    model = model.to(device=device)
+    try:
+        model = model.to(device=device)
+    except AttributeError:
+        print('Warning: to method not found, using default object')
+        return model, device
 
     return model, device
