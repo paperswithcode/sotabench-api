@@ -8,19 +8,7 @@ from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
 from .coco_eval import CocoEvaluator
-from .voc_eval import get_voc_results_file_template, voc_eval, write_voc_results_file
-
-def collate_fn(batch):
-    return tuple(zip(*batch))
-
-
-def pascal_detection_collate(batch):
-    targets = []
-    imgs = []
-    for sample in batch:
-        imgs.append(sample[0])
-        targets.append(torch.FloatTensor(sample[1]))
-    return torch.stack(imgs, 0), targets
+from .voc_eval import get_voc_results_file_template, voc_eval, write_voc_results_file, VOC_CLASSES
 
 
 def convert_to_coco_api(ds):
@@ -150,7 +138,7 @@ def get_voc_metrics(box_list, data_loader, labelmap):
     return {'Mean AP': np.mean(aps)}
 
 
-def evaluate_detection_coco(model, model_output_transform, test_loader, device='cuda'):
+def evaluate_detection_coco(model, test_loader, model_output_transform, send_data_to_device, device='cuda'):
 
     coco = get_coco_api_from_dataset(test_loader.dataset)
     iou_types = _get_iou_types(model)
@@ -158,17 +146,9 @@ def evaluate_detection_coco(model, model_output_transform, test_loader, device='
 
     with torch.no_grad():
         for i, (input, target) in enumerate(test_loader):
-            input = list(inp.to(device=device, non_blocking=True) for inp in input)
-            target = [{k: v.to(device=device, non_blocking=True) for k, v in t.items()} for t in target]
-
-            # compute output
+            input, target = send_data_to_device(input, target, device=device)
             output = model(input)
-
-            if model_output_transform is not None:
-                output = model_output_transform(output, target)
-            elif test_loader.no_classes == 91:  # COCO
-                output = [{k: v.to('cpu') for k, v in t.items()} for t in output]  # default torchvision extraction
-
+            output = model_output_transform(output, target)
             result = {tar["image_id"].item(): out for tar, out in zip(target, output)}
             coco_evaluator.update(result)
 
@@ -179,7 +159,7 @@ def evaluate_detection_coco(model, model_output_transform, test_loader, device='
     return get_coco_metrics(coco_evaluator)
 
 
-def evaluate_detection_voc(model, model_output_transform, test_loader, device='cuda'):
+def evaluate_detection_voc(model, test_loader, model_output_transform, send_data_to_device, device='cuda'):
     """
     Evaluates detection ability on VOC
 
@@ -192,31 +172,16 @@ def evaluate_detection_voc(model, model_output_transform, test_loader, device='c
     :return:
     """
 
-    VOC_CLASSES = ('aeroplane', 'bicycle', 'bird', 'boat',
-        'bottle', 'bus', 'car', 'cat', 'chair',
-        'cow', 'diningtable', 'dog', 'horse',
-        'motorbike', 'person', 'pottedplant',
-        'sheep', 'sofa', 'train', 'tvmonitor')
-
     num_images = len(test_loader.dataset)
     all_boxes = [[[] for _ in range(num_images)] for _ in range(len(VOC_CLASSES)+1)]
 
     for i in range(num_images):
-        # custom break
-        if i > 10:
-            break
+
         input, target = test_loader.dataset[i]
-
-        input = input.unsqueeze(0)
-        input = input.to(device=device)
-
+        input, target = send_data_to_device(input, target, device=device)
         height, width, channels = np.array(Image.open(test_loader.dataset.images[i]).convert('RGB')).shape
-
-        # compute output detections
-        output = model(input).data
-
-        if model_output_transform is not None:
-            output = model_output_transform(output)
+        output = model(input)
+        output = model_output_transform(output, target)
 
         # skip j = 0, because it's the background class
         for j in range(1, output.size(1)):

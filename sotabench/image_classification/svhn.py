@@ -3,7 +3,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 from sotabench.core import BenchmarkResult
-from sotabench.utils import send_model_to_device
+from sotabench.utils import send_model_to_device, default_data_to_device
 
 from .utils import evaluate_classification
 
@@ -14,12 +14,13 @@ class SVHN:
     normalize = transforms.Normalize(mean=[x / 255.0 for x in [109.9, 109.7, 113.8]],
                                      std=[x / 255.0 for x in [50.1, 50.6, 50.8]])
     input_transform = transforms.Compose([transforms.ToTensor(), normalize])
+    send_data_to_device = default_data_to_device
 
     @classmethod
     def benchmark(cls, model, input_transform=None, target_transform=None, model_output_transform=None,
-                  device: str = 'cuda', data_root: str = './.data/vision/svhn', num_workers: int = 4,
-                  batch_size: int = 128, num_gpu: int = 1, paper_model_name: str = None, paper_arxiv_id: str = None,
-                  paper_pwc_id: str = None, pytorch_hub_url: str = None) -> BenchmarkResult:
+                  send_data_to_device=None, device: str = 'cuda', data_root: str = './.data/vision/svhn',
+                  num_workers: int = 4, batch_size: int = 128, num_gpu: int = 1, paper_model_name: str = None,
+                  paper_arxiv_id: str = None, paper_pwc_id: str = None, pytorch_hub_url: str = None) -> BenchmarkResult:
 
         config = locals()
         model, device = send_model_to_device(model, device=device, num_gpu=num_gpu)
@@ -28,12 +29,16 @@ class SVHN:
         if not input_transform:
             input_transform = cls.input_transform
 
+        if not send_data_to_device:
+            send_data_to_device = cls.send_data_to_device
+
         test_dataset = cls.dataset(data_root, split='test', transform=input_transform,
                                    target_transform=target_transform, download=True)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers,
                                  pin_memory=True)
-        test_results = evaluate_classification(model=model, model_output_transform=model_output_transform,
-                                               test_loader=test_loader, device=device)
+        test_results = evaluate_classification(model=model, test_loader=test_loader,
+                                               model_output_transform=model_output_transform,
+                                               send_data_to_device=send_data_to_device, device=device)
 
         print(' * Acc@1 {top1:.3f} Acc@5 {top5:.3f}'.format(top1=test_results['Top 1 Accuracy'],
                                                             top5=test_results['Top 5 Accuracy']))

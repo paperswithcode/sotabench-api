@@ -36,6 +36,17 @@ def accuracy(output, target, topk=(1,)):
     return res
 
 
+def default_data_to_device(input, target, device: str = 'cuda', non_blocking: bool = True):
+    """
+    Sends data output from a PyTorch Dataloader to the device
+    """
+
+    input = input.to(device=device, non_blocking=non_blocking)
+    target = target.to(device=device, non_blocking=non_blocking)
+
+    return input, target
+
+
 def send_model_to_device(model, num_gpu: int = 1, device: str = 'cuda'):
     """Sends PyTorch model to a device and returns the model"""
 

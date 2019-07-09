@@ -1,11 +1,9 @@
 import time
 import torch
 
-from sotabench.utils import AverageMeter, accuracy
+from sotabench.utils import AverageMeter, accuracy, send_data_to_device
 
-
-def evaluate_classification(model, model_output_transform, test_loader,
-                            device='cuda'):
+def evaluate_classification(model, test_loader, model_output_transform, send_data_to_device, device='cuda'):
     batch_time = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
@@ -15,10 +13,7 @@ def evaluate_classification(model, model_output_transform, test_loader,
     with torch.no_grad():
         for i, (input, target) in enumerate(test_loader):
 
-            target = target.to(device=device, non_blocking=True)
-            input = input.to(device=device, non_blocking=True)
-
-            # compute output
+            input, target = send_data_to_device(input, target, device=device)
             output = model(input)
 
             if model_output_transform is not None:

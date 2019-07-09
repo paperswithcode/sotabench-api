@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import torch
 from albumentations.core.transforms_interface import DualTransform
-
 from PIL import Image
 
 
@@ -97,31 +96,26 @@ def cat_list(images, fill_value=0):
     return batched_imgs
 
 
-def collate_fn(batch):
+def default_seg_collate_fn(batch):
     images, targets = list(zip(*batch))
     batched_imgs = cat_list(images, fill_value=0)
     batched_targets = cat_list(targets, fill_value=255)
     return batched_imgs, batched_targets
 
 
-def evaluate_segmentation(model, model_output_transform, test_loader, device='cuda'):
+def default_seg_output_transform(output, target):
+    return output['out'].argmax(1).flatten(), target.flatten()
+
+
+def evaluate_segmentation(model, test_loader, model_output_transform, send_data_to_device, device='cuda'):
     confmat = ConfusionMatrix(test_loader.no_classes)
 
     with torch.no_grad():
         for i, (input, target) in enumerate(test_loader):
-
-            target = target.to(device=device, non_blocking=True)
-            input = input.to(device=device, non_blocking=True)
-
-            # compute output
+            input, target = send_data_to_device(input, target, device=device)
             output = model(input)
-
-            if model_output_transform is not None:
-                output = model_output_transform(output, target)
-            elif test_loader.no_classes == 21:  # VOC/COCO
-                output = output['out']  # default torchvision extraction method
-
-            confmat.update(target.flatten(), output.argmax(1).flatten())
+            output = model_output_transform(output, target)
+            confmat.update(target, output)
 
     acc_global, acc, iu = confmat.compute()
 
