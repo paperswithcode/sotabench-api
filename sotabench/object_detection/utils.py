@@ -1,4 +1,6 @@
 import numpy as np
+import os
+from PIL import Image
 import torch
 import torchvision
 
@@ -6,10 +8,19 @@ from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
 from .coco_eval import CocoEvaluator
-
+from .voc_eval import get_voc_results_file_template, voc_eval, write_voc_results_file
 
 def collate_fn(batch):
     return tuple(zip(*batch))
+
+
+def pascal_detection_collate(batch):
+    targets = []
+    imgs = []
+    for sample in batch:
+        imgs.append(sample[0])
+        targets.append(torch.FloatTensor(sample[1]))
+    return torch.stack(imgs, 0), targets
 
 
 def convert_to_coco_api(ds):
@@ -117,6 +128,28 @@ def get_coco_metrics(coco_evaluator):
     return metrics
 
 
+def get_voc_metrics(box_list, data_loader, labelmap):
+
+    dataset_year = data_loader.dataset.year
+    data_root = data_loader.dataset.root
+
+    write_voc_results_file(box_list, data_loader, data_root, dataset_year, labelmap)
+
+    annopath = os.path.join(data_root, 'VOCdevkit', 'VOC' + str(dataset_year), 'Annotations')
+    cachedir = os.path.join(data_root, 'VOCdevkit', 'VOC' + str(dataset_year), 'annotations_cache')
+    imgsetpath = os.path.join(data_root, 'VOCdevkit/', 'VOC' + str(dataset_year), 'ImageSets',
+                              'Main', '{:s}.txt')
+    aps = []
+
+    for i, cls in enumerate(labelmap):
+        filename = get_voc_results_file_template(data_root, dataset_year, 'val', cls)
+        rec, prec, ap = voc_eval(filename, annopath, imgsetpath.format('val'), cls, cachedir,
+           ovthresh=0.5, use_07_metric=True)
+        aps += [ap]
+
+    return {'Mean AP': np.mean(aps)}
+
+
 def evaluate_detection_coco(model, model_output_transform, test_loader, device='cuda'):
 
     coco = get_coco_api_from_dataset(test_loader.dataset)
@@ -144,3 +177,63 @@ def evaluate_detection_coco(model, model_output_transform, test_loader, device='
     coco_evaluator.summarize()
 
     return get_coco_metrics(coco_evaluator)
+
+
+def evaluate_detection_voc(model, model_output_transform, test_loader, device='cuda'):
+    """
+    Evaluates detection ability on VOC
+
+    All detections are collected into N x 5 arrays of detections with (x1, y1, x2, y2, score).
+
+    :param model:
+    :param model_output_transform:
+    :param test_loader:
+    :param device:
+    :return:
+    """
+
+    VOC_CLASSES = ('aeroplane', 'bicycle', 'bird', 'boat',
+        'bottle', 'bus', 'car', 'cat', 'chair',
+        'cow', 'diningtable', 'dog', 'horse',
+        'motorbike', 'person', 'pottedplant',
+        'sheep', 'sofa', 'train', 'tvmonitor')
+
+    num_images = len(test_loader.dataset)
+    all_boxes = [[[] for _ in range(num_images)] for _ in range(len(VOC_CLASSES)+1)]
+
+    for i in range(num_images):
+        # custom break
+        if i > 10:
+            break
+        input, target = test_loader.dataset[i]
+
+        input = input.unsqueeze(0)
+        input = input.to(device=device)
+
+        height, width, channels = np.array(Image.open(test_loader.dataset.images[i]).convert('RGB')).shape
+
+        # compute output detections
+        output = model(input).data
+
+        if model_output_transform is not None:
+            output = model_output_transform(output)
+
+        # skip j = 0, because it's the background class
+        for j in range(1, output.size(1)):
+            dets = output[0, j, :]
+            mask = dets[:, 0].gt(0.).expand(5, dets.size(0)).t()
+            dets = torch.masked_select(dets, mask).view(-1, 5)
+            if dets.size(0) == 0:
+                continue
+            boxes = dets[:, 1:]
+            boxes[:, 0] *= width
+            boxes[:, 2] *= width
+            boxes[:, 1] *= height
+            boxes[:, 3] *= height
+            scores = dets[:, 0].cpu().numpy()
+            cls_dets = np.hstack((boxes.cpu().numpy(), scores[:, np.newaxis])).astype(np.float32, copy=False)
+            all_boxes[j][i] = cls_dets
+
+        print('im_detect: {:d}/{:d}'.format(i + 1, num_images))
+
+    return get_voc_metrics(all_boxes, test_loader, VOC_CLASSES)

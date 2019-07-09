@@ -1,7 +1,9 @@
 # Source: https://github.com/pytorch/vision/blob/master/references/detection/transforms.py
+# Source: https://github.com/luuuyi/RefineDet.PyTorch/blob/master/models/refinedet.py
 
 import random
 from pycocotools import mask as coco_mask
+import numpy as np
 import torch
 from torchvision.transforms import functional as F
 
@@ -23,6 +25,16 @@ class Compose(object):
     def __call__(self, image, target):
         for t in self.transforms:
             image, target = t(image, target)
+        return image, target
+
+
+class Normalize(object):
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, image, target):
+        image = F.normalize(image, mean=self.mean, std=self.std)
         return image, target
 
 
@@ -49,6 +61,15 @@ class RandomHorizontalFlip(object):
 class ToTensor(object):
     def __call__(self, image, target):
         image = F.to_tensor(image)
+        return image, target
+
+
+class ImageResize(object):
+    def __init__(self, resize_shape):
+        self.resize_shape = resize_shape
+
+    def __call__(self, image, target):
+        image = F.resize(image, self.resize_shape)
         return image, target
 
 
@@ -123,3 +144,60 @@ class ConvertCocoPolysToMask(object):
         target["iscrowd"] = iscrowd
 
         return image, target
+
+
+class VOCAnnotationTransform(object):
+    """Transforms a VOC annotation into a Tensor of bbox coords and label index
+    Initilized with a dictionary lookup of classnames to indexes
+    Arguments:
+        class_to_ind (dict, optional): dictionary lookup of classnames -> indexes
+            (default: alphabetic indexing of VOC's 20 classes)
+        keep_difficult (bool, optional): keep difficult instances or not
+            (default: False)
+        height (int): height
+        width (int): width
+    """
+
+    voc_classes = (
+        'aeroplane', 'bicycle', 'bird', 'boat',
+        'bottle', 'bus', 'car', 'cat', 'chair',
+        'cow', 'diningtable', 'dog', 'horse',
+        'motorbike', 'person', 'pottedplant',
+        'sheep', 'sofa', 'train', 'tvmonitor')
+
+    def __init__(self, class_to_ind=None, keep_difficult=False):
+
+        self.class_to_ind = class_to_ind or dict(
+            zip(self.voc_classes, range(len(self.voc_classes))))
+        self.keep_difficult = keep_difficult
+
+    def __call__(self, image, target):
+
+        height, width, channels = image.shape
+
+        res = []
+
+        if isinstance(target['annotation']['object'], dict):
+            target_item = [target['annotation']['object']]
+        else:
+            target_item = target['annotation']['object']
+
+        for obj in target_item:
+            difficult = obj['difficult'] == 1
+            if not self.keep_difficult and difficult:
+                continue
+            name = obj['name']
+            bbox = obj['bndbox']
+
+            pts = ['xmin', 'ymin', 'xmax', 'ymax']
+            bndbox = []
+            for i, pt in enumerate(pts):
+                cur_pt = int(bbox[pt]) - 1
+                # scale height or width
+                cur_pt = cur_pt / width if i % 2 == 0 else cur_pt / height
+                bndbox.append(cur_pt)
+            label_idx = self.class_to_ind[name]
+            bndbox.append(label_idx)
+            res += [bndbox]  # [xmin, ymin, xmax, ymax, label_ind]
+
+        return image, torch.as_tensor(np.array(res), dtype=torch.float32)  # [[xmin, ymin, xmax, ymax, label_ind], ... ]
