@@ -72,7 +72,7 @@ class CoNLL2003(Dataset):
         quote_count = 0
 
         for token_dict in sentence:
-
+            token_dict['whitespace_after'] = None
             if token_dict['name'] == '"':
                 quote_count += 1
                 if quote_count % 2 != 0:
