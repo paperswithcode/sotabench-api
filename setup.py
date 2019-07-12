@@ -11,7 +11,7 @@ DESCRIPTION = "Easily benchmark Machine Learning models on selected tasks and da
 setup(
     name=PACKAGE_NAME,
     maintainer=AUTHOR,
-    version='0.0.2',
+    version='0.0.3',
     packages=[PACKAGE_NAME,
               'sotabench.core',
               'sotabench.datasets',
