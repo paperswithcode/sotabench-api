@@ -1,44 +1,55 @@
 import json
 import os
-from typing import Union
-
-import torch.utils.data as data
 
 
 class BenchmarkResult:
+    """
+    BenchmarkResult takes in inputs from a benchmark evaluation and stores them to a JSON at evaluation.json.
 
-    def __init__(self, task: str,
-                 benchmark,
-                 config: dict,
-                 dataset: Union[str, data.Dataset],
+    This file is then processed to store and show results on the sotabench platform.
+
+    Most of the inputs are optional - so when you create a benchmark, you can choose which subset of
+    arguments you want to store (that are relevant for your benchmark)
+    """
+
+    def __init__(self,
+                 model: str,
+                 task: str,
+                 dataset: str,
                  results: dict,
-                 paper_model_name: str = None,
-                 paper_arxiv_id: str = None,
-                 paper_pwc_id: str = None,
-                 pytorch_hub_url: str = None):
+                 config: dict,
+                 benchmark,
+                 arxiv_id: str = None,
+                 pwc_id: str = None,
+                 pytorch_hub_id: str = None):
         """
-        A class for holding benchmark results for a model
+        CORE INPUTS
+        :param: model: Name of the model, e.g. 'EfficientNet-B0'
+        :param: task: string describing a task, e.g. "Image Classification"
+        :param: dataset: either a string for a name, e.g. "CIFAR-10", or a dataset-like object
+        :param: results: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
 
-        :param task: string describing a task, e.g. "Image Classification"
-        :param benchmark: Object containing the benchmark data and benchmark evaluation method
-        :param config: dict containing inputs to the evaluation function
-        :param dataset: either a string for a name, e.g. "CIFAR-10", or a torch.data.Dataset object
-        :param results: dict with keys as metric names, e.g. 'Top 1 Accuracy', and values as floats, e.g. 0.80
-        :param: paper_model_name: (optional) Name of the model that comes from the paper, e.g. 'BERT small'
-        :param: paper_arxiv_id: (optional) Representing the paper where the model comes from, e.g. '1901.07518'
-        :param: paper_pwc_id: (optional) Representing the location of the PWC paper, e.g.: 'hybrid-task-cascade-for-instance-segmentation'
-        :param: pytorch_hub_id: (optional) Representing the location of the PyTorch Hub model, e.g.: 'mateuszbuda_brain-segmentation-pytorch_unet'
-
+        OPTIONAL INPUTS
+        :param: config: dict storing user configuration arguments (inputs to the evaluation function), e.g. the
+        transforms that were passed to the dataset object (resizing, cropping...)
+        :param: benchmark: Object containing the benchmark data and benchmark evaluation method (see torchbench
+        library for an example)
+        :param: arxiv_id: string describing the paper where the model comes from, e.g. '1901.07518'
+        :param: pwc_id: describing the paperswithcode.com page -
+        e.g.: 'hybrid-task-cascade-for-instance-segmentation'
+        :param: pytorch_hub_id: describing the location of the PyTorch Hub model,
+        e.g.: 'mateuszbuda_brain-segmentation-pytorch_unet'
         """
+
+        self.model = model
         self.task = task
-        self.benchmark = benchmark
-        self.config = config
-        self.results = results
-        self.paper_model_name = paper_model_name
-        self.paper_arxiv_id = paper_arxiv_id
-        self.paper_pwc_id = paper_pwc_id
-        self.pytorch_hub_url = pytorch_hub_url
         self.dataset = dataset
+        self.results = results
+        self.config = config
+        self.benchmark = benchmark
+        self.arxiv_id = arxiv_id
+        self.pwc_id = pwc_id
+        self.pytorch_hub_id = pytorch_hub_id
 
         if isinstance(self.dataset, str):
             self.dataset_name = self.dataset
@@ -49,24 +60,25 @@ class BenchmarkResult:
 
         self.create_json = True if os.environ.get('SOTABENCH_STORE_FILENAME') else False
 
-        self.evaluate()
+        self.to_dict()
 
-    def evaluate(self):
+    def to_dict(self):
         """
-        Performs evaluation using a benchmark function and returns a dictionary of the build results. If an environmental
-        variable is set (SOTABENCH_STORE_RESULTS == 'True') then will also save a JSON called evaluation.json
+        Performs evaluation using a benchmark function and returns a dictionary of the build results.
+        If an environmental variable is set (SOTABENCH_STORE_RESULTS == 'True') then will also
+        save a JSON called evaluation.json
 
         :return: build_dict: a dictionary containing results
         """
 
         build_dict = {
+            'model': self.model,
             'task': self.task,
+            'dataset_name': self.dataset_name,
             'results': self.results,
-            'dataset': self.dataset_name,
-            'paper_model_name': self.paper_model_name,
-            'paper_arxiv_id': self.paper_arxiv_id,
-            'paper_pwc_id': self.paper_pwc_id,
-            'pytorch_hub_url': self.pytorch_hub_url}
+            'arxiv_id': self.arxiv_id,
+            'pwc_id': self.pwc_id,
+            'pytorch_hub_id': self.pytorch_hub_id}
 
         if self.create_json:
             file_name = os.environ.get('SOTABENCH_STORE_FILENAME')
