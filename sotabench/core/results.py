@@ -17,8 +17,8 @@ class BenchmarkResult:
                  task: str,
                  dataset: str,
                  results: dict,
-                 config: dict,
-                 benchmark,
+                 config: dict = None,
+                 benchmark=None,
                  arxiv_id: str = None,
                  pwc_id: str = None,
                  pytorch_hub_id: str = None):
