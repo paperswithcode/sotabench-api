@@ -1,6 +1,6 @@
 from setuptools import setup
 
-PACKAGE_NAME = "sotabench"
+PACKAGE_NAME = "sotabenchapi"
 LICENSE = "Apache 2.0"
 AUTHOR = "rstojnic"
 EMAIL = "hello@sotabench.com"
@@ -12,7 +12,7 @@ setup(
     name=PACKAGE_NAME,
     maintainer=AUTHOR,
     version='0.0.4',
-    packages=[PACKAGE_NAME, 'sotabench.core'],
+    packages=[PACKAGE_NAME, 'sotabenchapi.core'],
     include_package_data=True,
     license=LICENSE,
     description=DESCRIPTION,
