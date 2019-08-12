@@ -21,7 +21,8 @@ class BenchmarkResult:
                  benchmark=None,
                  arxiv_id: str = None,
                  pwc_id: str = None,
-                 pytorch_hub_id: str = None):
+                 pytorch_hub_id: str = None,
+                 paper_results: dict = None):
         """
         CORE INPUTS
         :param: model: Name of the model, e.g. 'EfficientNet-B0'
@@ -39,6 +40,8 @@ class BenchmarkResult:
         e.g.: 'hybrid-task-cascade-for-instance-segmentation'
         :param: pytorch_hub_id: describing the location of the PyTorch Hub model,
         e.g.: 'mateuszbuda_brain-segmentation-pytorch_unet'
+        :param: paper_results : a dict with original results from the PAPER, e.g.: {'Top 1 Accuracy': 0.543,
+        'Top 5 Accuracy': 0.743}. The metric names should match those used in the existing leaderboard.
         """
 
         self.model = model
@@ -50,6 +53,7 @@ class BenchmarkResult:
         self.arxiv_id = arxiv_id
         self.pwc_id = pwc_id
         self.pytorch_hub_id = pytorch_hub_id
+        self.paper_results = paper_results
 
         if isinstance(self.dataset, str):
             self.dataset_name = self.dataset
@@ -78,7 +82,8 @@ class BenchmarkResult:
             'results': self.results,
             'arxiv_id': self.arxiv_id,
             'pwc_id': self.pwc_id,
-            'pytorch_hub_id': self.pytorch_hub_id}
+            'pytorch_hub_id': self.pytorch_hub_id,
+            'paper_results': self.paper_results}
 
         if self.create_json:
             file_name = os.environ.get('SOTABENCH_STORE_FILENAME')

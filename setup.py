@@ -11,7 +11,7 @@ DESCRIPTION = "Easily benchmark Machine Learning models on selected tasks and da
 setup(
     name=PACKAGE_NAME,
     maintainer=AUTHOR,
-    version='0.0.4',
+    version='0.0.5',
     packages=[PACKAGE_NAME, 'sotabenchapi.core'],
     include_package_data=True,
     license=LICENSE,
