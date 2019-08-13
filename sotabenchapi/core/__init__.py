@@ -1,1 +1,3 @@
-from .results import BenchmarkResult
+__all__ = ["BenchmarkResult"]
+
+from sotabenchapi.core.results import BenchmarkResult
