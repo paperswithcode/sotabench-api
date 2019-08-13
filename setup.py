@@ -13,6 +13,7 @@ description = (
 
 
 setup(
+    name=name,
     version=__version__,
     author=author,
     author_email=author_email,
