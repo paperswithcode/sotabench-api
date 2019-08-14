@@ -38,9 +38,12 @@ class Config(object):
             cp.read(self.config_path)
             data = cp[self.profile] if cp.has_section(self.profile) else {}
 
-        self.url = consts.SOTABENCH_API_URL
+        self.url = os.environ.get(
+            "SOTABENCH_URL", data.get("url", consts.SOTABENCH_API_URL)
+        )
+        self.token = os.environ.get("SOTABENCH_TOKEN", data.get("token", ""))
         self.sotabench_check = os.environ.get(
-            "SOTABENCH_CHECK", data.get("sotabench_check", None)
+            "SOTABENCH_CHECK", data.get("sotabench_check", "full")
         )
 
     def save(self):
@@ -59,6 +62,7 @@ class Config(object):
             cp.add_section(self.profile)
 
         # Write the current configuration to the profile
+        cp[self.profile]["token"] = self.token
         cp[self.profile]["sotabench_check"] = self.sotabench_check
 
         # Save configuration
