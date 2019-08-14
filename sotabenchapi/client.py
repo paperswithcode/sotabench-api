@@ -1,3 +1,5 @@
+from typing import List
+
 from sotabenchapi.config import Config
 from sotabenchapi.http import HttpClient
 
@@ -28,3 +30,18 @@ class Client(object):
             "auth/token/", data={"username": username, "password": password}
         )
         return response["token"]
+
+    def check_model_hashes(self, hashes: List[str]) -> dict:
+        """Check if the hash exist in the database.
+
+        Args:
+            hashes (list of str): List of model hashes.
+
+        Returns:
+            dict: Dictionary of ``{hash: True/False}`` pairs. ``True``
+                represents an existing hash, ``False`` a non existing.
+        """
+        response = self.http.post(
+            "check/model-hashes/", data={"hashes": hashes}
+        )
+        return response

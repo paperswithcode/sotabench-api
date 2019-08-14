@@ -110,7 +110,7 @@ class BenchmarkResult:
             "pwc_id": self.pwc_id,
             "pytorch_hub_id": self.pytorch_hub_id,
             "paper_results": self.paper_results,
-            "run_hash": self.run_hash
+            "run_hash": self.run_hash,
         }
 
         if self.create_json:
