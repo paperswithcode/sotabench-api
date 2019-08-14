@@ -59,6 +59,7 @@ class BenchmarkResult:
         pwc_id: Optional[str] = None,
         pytorch_hub_id: Optional[str] = None,
         paper_results: Optional[dict] = None,
+        run_hash: Optional[str] = None,
     ):
 
         self.model = model
@@ -71,6 +72,7 @@ class BenchmarkResult:
         self.pwc_id = pwc_id
         self.pytorch_hub_id = pytorch_hub_id
         self.paper_results = paper_results
+        self.run_hash = run_hash
 
         if isinstance(self.dataset, str):
             self.dataset_name = self.dataset
@@ -108,6 +110,7 @@ class BenchmarkResult:
             "pwc_id": self.pwc_id,
             "pytorch_hub_id": self.pytorch_hub_id,
             "paper_results": self.paper_results,
+            "run_hash": self.run_hash
         }
 
         if self.create_json:
