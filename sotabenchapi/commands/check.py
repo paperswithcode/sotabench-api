@@ -45,7 +45,7 @@ def check(config: Config):
     # Check hashes
     hashes = ["foo", "bar"]
     client = Client(config)
-    result = client.check_model_hashes(hashes)
+    result = client.check_run_hashes(hashes)
     for h, exist in result.items():
         click.secho(
             f"Hash: `{h}` - {'exists' if exist else 'does not exist.'}"

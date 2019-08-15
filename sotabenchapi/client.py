@@ -31,17 +31,15 @@ class Client(object):
         )
         return response["token"]
 
-    def check_model_hashes(self, hashes: List[str]) -> dict:
+    def check_run_hashes(self, hashes: List[str]) -> dict:
         """Check if the hash exist in the database.
 
         Args:
-            hashes (list of str): List of model hashes.
+            hashes (list of str): List of run hashes.
 
         Returns:
             dict: Dictionary of ``{hash: True/False}`` pairs. ``True``
                 represents an existing hash, ``False`` a non existing.
         """
-        response = self.http.post(
-            "check/model-hashes/", data={"hashes": hashes}
-        )
+        response = self.http.post("check/run-hashes/", data={"hashes": hashes})
         return response
