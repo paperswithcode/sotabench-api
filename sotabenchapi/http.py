@@ -103,6 +103,14 @@ class HttpClient:
                     params=params,
                     timeout=timeout,
                 )
+            elif method.lower() == "patch":
+                self.response = self.session.patch(
+                    url=full_url,
+                    headers=headers,
+                    params=params,
+                    json=data,
+                    timeout=timeout,
+                )
             elif method.lower() == "post":
                 self.response = self.session.post(
                     url=full_url,
@@ -190,10 +198,35 @@ class HttpClient:
 
         """
         return self.request(
-            method="GET",
+            method="get",
             url=url,
             headers=headers,
             params=params,
+            timeout=timeout,
+        )
+
+    def patch(self, url, headers=None, params=None, data=None, timeout=None):
+        """Perform patch request.
+
+        Args:
+            url (str): Partial url of the request. It is added to the base url
+            headers (dict): Dictionary of additional HTTP headers
+            params (dict): Dictionary of query parameters for the request
+            data (dict): A JSON serializable Python object to send in the body
+                of the request.
+            timeout (float): How many seconds to wait for the server to send
+                data before giving up
+
+        Returns
+            dict: Deserialized json response
+
+        """
+        return self.request(
+            method="patch",
+            url=url,
+            headers=headers,
+            params=params,
+            data=data,
             timeout=timeout,
         )
 
@@ -214,7 +247,7 @@ class HttpClient:
 
         """
         return self.request(
-            method="POST",
+            method="post",
             url=url,
             headers=headers,
             params=params,
@@ -238,7 +271,7 @@ class HttpClient:
             dict: Deserialized json response
         """
         return self.request(
-            method="DELETE",
+            method="delete",
             url=url,
             headers=headers,
             params=params,

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sotabenchapi.config import Config
 from sotabenchapi.http import HttpClient
@@ -41,5 +41,51 @@ class Client(object):
             dict: Dictionary of ``{hash: True/False}`` pairs. ``True``
                 represents an existing hash, ``False`` a non existing.
         """
-        response = self.http.post("check/run-hashes/", data={"hashes": hashes})
-        return response
+        return self.http.post("check/run-hashes/", data={"hashes": hashes})
+
+    def repository_list(self, username: Optional[str] = None):
+        """List repositories.
+
+        Optionally filter by repository owner.
+        """
+        if username is None:
+            return self.http.get("repositories/")
+        else:
+            return self.http.get(f"repositories/{username}/")
+
+    def repository_get(self, repository: str):
+        """Get repository.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+        """
+        return self.http.get(f"repositories/{repository}/")
+
+    def repository_update(self, repository: str, build_enabled: bool):
+        """Update build_enabled flag.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+            build_enabled (bool): Should the build be enabled or not.
+        """
+        return self.http.patch(
+            f"repositories/{repository}/",
+            data={"build_enabled": build_enabled},
+        )
+
+    def build_start(self, repository: str):
+        """Initiate repository build.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+        """
+        return self.http.post(f"repositories/{repository}/")
+
+    def build_get(self, repository: str, run_number: int):
+        """Get build.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+            run_number (int): Run number of the build.
+        """
+        return self.http.get(f"repositories/{repository}/{run_number}/")
