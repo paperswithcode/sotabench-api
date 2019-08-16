@@ -56,3 +56,14 @@ class Client(object):
 
         response = self.http.get("check/get_results_by_hash", params={"run_hash": run_hash})
         return response
+
+
+def get_public_sotabench_client() -> Client:
+    """Get the public access sotabench client.
+
+    Returns:
+         Client: A client instance that can be used to make API
+         requests to sotabench.com
+    """
+    config = Config(None)
+    return Client(config)
