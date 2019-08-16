@@ -45,6 +45,9 @@ class BenchmarkResult:
 
             The metric names should match those used in the existing
             leaderboard.
+        run_hash (str): The run_hash that uniquely identifies this run, based
+            on results from the first batch. It is used to cache runs so we
+            don't have to re-run benchmarks when nothing has changed.
     """
 
     def __init__(
