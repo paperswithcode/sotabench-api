@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from sotabenchapi.config import Config
 from sotabenchapi.http import HttpClient
@@ -56,6 +56,20 @@ class Client(object):
 
         response = self.http.get("check/get_results_by_hash", params={"run_hash": run_hash})
         return response
+
+    def check_results(self, results: List[dict]) -> List[dict]:
+        """Check if the results would be accepted by sotabench.com
+
+        Args:
+            results: A list of results dictionaries (ie same format as sotabench-results.json
+
+        Returns:
+            List[dict]: A list of dictionaries highlighting any errors with the submitted results
+        """
+
+        response = self.http.post("check/results/", data={"results": results})
+        return response
+
 
 
 def get_public_sotabench_client() -> Client:
