@@ -44,7 +44,7 @@ class Client(object):
         response = self.http.post("check/run-hashes/", data={"hashes": hashes})
         return response
 
-    def get_results_bu_run_hash(self, run_hash: str) -> dict:
+    def get_results_by_run_hash(self, run_hash: str) -> dict:
         """Get cached results by run_hash
 
         Args:

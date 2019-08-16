@@ -8,7 +8,7 @@ def test_run_hash():
     config = Config(config_path)
     client = Client(config)
 
-    res = client.get_results_bu_run_hash(run_hash="c474595718e06d524fa4eaeba35347181f1fa18b28f123e68eeaeca8c52336aa")
+    res = client.get_results_by_run_hash(run_hash="c474595718e06d524fa4eaeba35347181f1fa18b28f123e68eeaeca8c52336aa")
 
     assert isinstance(res, dict)
     assert res["Top 5 Accuracy"] == 0.9795
