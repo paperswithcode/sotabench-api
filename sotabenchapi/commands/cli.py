@@ -1,8 +1,9 @@
 import os
 import click
 
-from sotabenchapi import config
 from sotabenchapi import consts
+from sotabenchapi.config import Config
+from sotabenchapi.client import Client
 
 
 @click.group()
@@ -22,6 +23,18 @@ from sotabenchapi import consts
 @click.pass_context
 def cli(ctx, config_path, profile):
     """sotabench command line client."""
-    if config is None:
+    if config_path is None:
         config_path = os.path.expanduser(consts.DEFAULT_CONFIG_PATH)
-    ctx.obj = config.Config(config_path, profile)
+    ctx.obj = Config(config_path, profile)
+
+
+@cli.command("login")
+@click.pass_obj
+def login(config: Config):
+    """Obtain authentication token."""
+    username = click.prompt("Username")
+    password = click.prompt("Password", hide_input=True)
+
+    client = Client(config)
+    config.token = client.login(username=username, password=password)
+    config.save()

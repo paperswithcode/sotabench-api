@@ -4,12 +4,14 @@ import click
 import subprocess
 from pathlib import Path
 
+from sotabenchapi.config import Config
+from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
 
 
 @cli.command("check")
 @click.pass_obj
-def check(config):
+def check(config: Config):
     """Check if the benchmarking setup is correct."""
     cwd = Path(os.getcwd()).absolute()
 
@@ -39,3 +41,12 @@ def check(config):
         if stderr:
             click.secho(f"\nStderr:", fg="cyan")
             click.secho(stderr, fg="red")
+
+    # Check hashes
+    hashes = ["foo", "bar"]
+    client = Client(config)
+    result = client.check_run_hashes(hashes)
+    for h, exist in result.items():
+        click.secho(
+            f"Hash: `{h}` - {'exists' if exist else 'does not exist.'}"
+        )
