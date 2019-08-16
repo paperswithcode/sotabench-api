@@ -79,7 +79,15 @@ class Client(object):
         Args:
             repository (str): Repository in ``owner/project`` format.
         """
-        return self.http.post(f"repositories/{repository}/")
+        return self.http.post(f"builds/{repository}/")
+
+    def build_list(self, repository: str):
+        """List builds for a given repository.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+        """
+        return self.http.get(f"builds/{repository}/")
 
     def build_get(self, repository: str, run_number: int):
         """Get build.
@@ -88,4 +96,4 @@ class Client(object):
             repository (str): Repository in ``owner/project`` format.
             run_number (int): Run number of the build.
         """
-        return self.http.get(f"repositories/{repository}/{run_number}/")
+        return self.http.get(f"builds/{repository}/{run_number}/")

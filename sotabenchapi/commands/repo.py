@@ -3,7 +3,7 @@ import click
 from sotabenchapi.config import Config
 from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
-from sotabenchapi.commands.utils import handle_errors, check_repo
+from sotabenchapi.commands.utils import handle_errors, check_repo, table
 
 
 @cli.group("repo")
@@ -21,7 +21,7 @@ def repo_cli():
 def repo_list(config: Config, owner):
     """List repositories."""
     client = Client(config)
-    click.secho(client.repository_list(username=owner))
+    table(client.repository_list(username=owner))
 
 
 @repo_cli.command("get")
@@ -35,4 +35,4 @@ def repo_get(config: Config, repository: str):
     """
     repository = check_repo(repository)
     client = Client(config)
-    click.secho(client.repository_get(repository=repository))
+    table(client.repository_get(repository=repository))

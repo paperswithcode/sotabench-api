@@ -2,6 +2,7 @@ import sys
 import functools
 
 import click
+from tabulate import tabulate
 
 from sotabenchapi import errors
 
@@ -33,3 +34,10 @@ def check_repo(repository: str):
         )
         sys.exit(1)
     return repository.strip("/")
+
+
+def table(data):
+    """Show data as a table."""
+    if not isinstance(data, (list, tuple)):
+        data = [data]
+    click.secho(tabulate(data, headers="keys", tablefmt="fancy_grid"))
