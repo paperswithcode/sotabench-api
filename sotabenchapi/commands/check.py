@@ -7,10 +7,12 @@ from pathlib import Path
 from sotabenchapi.config import Config
 from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
+from sotabenchapi.commands.utils import handle_errors
 
 
 @cli.command("check")
 @click.pass_obj
+@handle_errors()
 def check(config: Config):
     """Check if the benchmarking setup is correct."""
     cwd = Path(os.getcwd()).absolute()

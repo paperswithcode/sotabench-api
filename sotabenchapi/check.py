@@ -9,7 +9,7 @@ def in_check_mode():
     have been specified correctly.
 
     Returns:
-        (bool): True if we are in check mode
+        bool: True if we are in check mode.
     """
     check_mode = os.environ.get("SOTABENCH_CHECK")
 
@@ -20,12 +20,12 @@ def in_check_mode():
 
 
 def get_check_mode_type():
-    """Get the type of checking we are doing
+    """Get the type of checking we are doing.
 
     Returns:
-         (str): Either "full" for a full check including running the
-         benchmark on the first batch, or "params" which only check
-         input parameters of the benchmark function.
+         str: Either "full" for a full check including running the benchmark on
+            the first batch, or "params" which only check input parameters of
+            the benchmark function.
     """
     check_mode = os.environ.get("SOTABENCH_CHECK")
 
@@ -35,4 +35,3 @@ def get_check_mode_type():
         return check_mode
     else:
         return "n/a"
-

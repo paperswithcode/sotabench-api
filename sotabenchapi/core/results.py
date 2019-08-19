@@ -3,7 +3,7 @@ import os
 from typing import Optional, Any
 
 from sotabenchapi.check import in_check_mode, get_check_mode_type
-from sotabenchapi.client import get_public_sotabench_client
+from sotabenchapi.client import Client
 
 
 class BenchmarkResult:
@@ -123,7 +123,7 @@ class BenchmarkResult:
         }
 
         if self.in_check_mode:
-            client = get_public_sotabench_client()
+            client = Client.public()
             r = client.check_results([build_dict])
             errors = r["response"]["errors"]
             if errors:
