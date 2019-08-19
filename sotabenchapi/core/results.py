@@ -2,6 +2,9 @@ import json
 import os
 from typing import Optional, Any
 
+from sotabenchapi.check import in_check_mode, get_check_mode_type
+from sotabenchapi.client import Client
+
 
 class BenchmarkResult:
     """BenchmarkResult represents the results of a benchmark.
@@ -88,6 +91,9 @@ class BenchmarkResult:
             True if os.environ.get("SOTABENCH_STORE_FILENAME") else False
         )
 
+        self.in_check_mode = in_check_mode()
+        self.check_mode_type = get_check_mode_type()
+
         self.to_dict()
 
     def to_dict(self) -> dict:
@@ -116,7 +122,14 @@ class BenchmarkResult:
             "run_hash": self.run_hash,
         }
 
-        if self.create_json:
+        if self.in_check_mode:
+            client = Client.public()
+            r = client.check_results([build_dict])
+            errors = r["response"]["errors"]
+            if errors:
+                print("Error while checking:")
+                print(errors)
+        elif self.create_json:
             file_name = os.environ.get("SOTABENCH_STORE_FILENAME")
 
             if not os.path.isfile(file_name):

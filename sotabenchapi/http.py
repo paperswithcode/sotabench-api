@@ -89,7 +89,7 @@ class HttpClient:
             data (dict): A JSON serializable Python object to send in the body
                 of the request. Used only in POST requests.
             timeout (float): How many seconds to wait for the server to send
-                data before giving up
+                data before giving up.
         """
         full_url = os.path.join(self.url, url.lstrip("/"))
         headers = {**self.headers, **(headers or {})}
@@ -193,8 +193,8 @@ class HttpClient:
             timeout (float): How many seconds to wait for the server to send
                 data before giving up
 
-        Returns
-            dict: Deserialized json response
+        Returns:
+            dict: Deserialized json response.
 
         """
         return self.request(
@@ -217,8 +217,8 @@ class HttpClient:
             timeout (float): How many seconds to wait for the server to send
                 data before giving up
 
-        Returns
-            dict: Deserialized json response
+        Returns:
+            dict: Deserialized json response.
 
         """
         return self.request(
@@ -242,8 +242,8 @@ class HttpClient:
             timeout (float): How many seconds to wait for the server to send
                 data before giving up
 
-        Returns
-            dict: Deserialized json response
+        Returns:
+            dict: Deserialized json response.
 
         """
         return self.request(
@@ -267,8 +267,8 @@ class HttpClient:
             timeout (float): How many seconds to wait for the server to send
                 data before giving up
 
-        Returns
-            dict: Deserialized json response
+        Returns:
+            dict: Deserialized json response.
         """
         return self.request(
             method="delete",

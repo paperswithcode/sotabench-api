@@ -16,6 +16,17 @@ class Client(object):
         self.config = config
         self.http = HttpClient(url=config.url, token=config.token)
 
+    @classmethod
+    def public(cls) -> "Client":
+        """Get the public access sotabench client.
+
+        Returns:
+            Client: A client instance that can be used to make API
+                requests to sotabench.com.
+        """
+        config = Config(None)
+        return Client(config)
+
     def login(self, username: str, password: str) -> str:
         """Obtain authentication token.
 
@@ -31,6 +42,7 @@ class Client(object):
         )
         return response["token"]
 
+    # Check
     def check_run_hashes(self, hashes: List[str]) -> dict:
         """Check if the hash exist in the database.
 
@@ -41,8 +53,45 @@ class Client(object):
             dict: Dictionary of ``{hash: True/False}`` pairs. ``True``
                 represents an existing hash, ``False`` a non existing.
         """
-        return self.http.post("check/run-hashes/", data={"hashes": hashes})
+        response = self.http.post("check/run-hashes/", data={"hashes": hashes})
+        return response
 
+    def get_results_by_run_hash(self, run_hash: str) -> dict:
+        """Get cached results by run_hash.
+
+        Args:
+            run_hash (str): SHA256 run_hash that identifies the run
+
+        Returns:
+            dict: A dictionary of results, e.g::
+
+                {
+                    "Top 1 Accuracy": 0.85,
+                    "Top 5 Accuracy": 0.90
+                }
+        """
+
+        response = self.http.get(
+            "check/get_results_by_hash/", params={"run_hash": run_hash}
+        )
+        return response
+
+    def check_results(self, results: List[dict]) -> List[dict]:
+        """Check if the results would be accepted by sotabench.com.
+
+        Args:
+            results: A list of results dictionaries (ie same format as
+                sotabench-results.json.
+
+        Returns:
+            List[dict]: A list of dictionaries highlighting any errors with the
+                submitted results.
+        """
+
+        response = self.http.post("check/results/", data={"results": results})
+        return response
+
+    # Repository
     def repository_list(self, username: Optional[str] = None):
         """List repositories.
 
@@ -73,6 +122,7 @@ class Client(object):
             data={"build_enabled": build_enabled},
         )
 
+    # Build
     def build_start(self, repository: str):
         """Initiate repository build.
 
