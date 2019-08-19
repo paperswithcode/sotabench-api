@@ -32,14 +32,16 @@ def check(config: Config, params: bool=False):
         click.secho("requirements.txt is missing.", fg="red")
         sys.exit(1)
 
-    if params is True:
+    if config.sotabench_check:
+        check_var = config.sotabench_check
+    elif params is True:
         check_var = "params"
     else:
         check_var = "full"
 
     process = subprocess.Popen(
         [sys.executable, "sotabench.py"],
-        env={"SOTABENCH_CHECK": config.sotabench_check or check_var},
+        env={"SOTABENCH_CHECK": check_var},
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
