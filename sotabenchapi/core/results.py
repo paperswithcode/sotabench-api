@@ -29,9 +29,6 @@ class BenchmarkResult:
         config (dict, optional): Dictionary storing user configuration
             arguments (inputs to the evaluation function), e.g. the transforms
             that were passed to the dataset object (resizing, cropping...)
-        benchmark (object, optional): Object containing the benchmark data and
-            benchmark evaluation method (see torchbench library for an
-            example).
         arxiv_id (str), optional): String describing the paper where the model
             comes from, e.g. ``1901.07518``.
         pwc_id (str, optional): Describing the paperswithcode.com page - e.g.:
@@ -60,7 +57,6 @@ class BenchmarkResult:
         dataset: str,
         results: dict,
         config: Optional[dict] = None,
-        benchmark: Optional[Any] = None,
         arxiv_id: Optional[str] = None,
         pwc_id: Optional[str] = None,
         pytorch_hub_id: Optional[str] = None,
@@ -73,19 +69,11 @@ class BenchmarkResult:
         self.dataset = dataset
         self.results = results
         self.config = config
-        self.benchmark = benchmark
         self.arxiv_id = arxiv_id
         self.pwc_id = pwc_id
         self.pytorch_hub_id = pytorch_hub_id
         self.paper_results = paper_results
         self.run_hash = run_hash
-
-        if isinstance(self.dataset, str):
-            self.dataset_name = self.dataset
-            self.dataset_obj = None
-        else:
-            self.dataset_name = type(self.dataset).__name__
-            self.dataset_obj = self.dataset
 
         self.create_json = (
             True if os.environ.get("SOTABENCH_STORE_FILENAME") else False
@@ -113,7 +101,7 @@ class BenchmarkResult:
         build_dict = {
             "model": self.model,
             "task": self.task,
-            "dataset_name": self.dataset_name,
+            "dataset_name": self.dataset,
             "results": self.results,
             "arxiv_id": self.arxiv_id,
             "pwc_id": self.pwc_id,
