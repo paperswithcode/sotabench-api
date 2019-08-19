@@ -117,7 +117,8 @@ class BenchmarkResult:
             errors = r["response"]["errors"]
             if errors:
                 print(colored("\nError while checking:\n", 'red'))
-                print(errors)
+                for error_dict in errors:
+                    print(error_dict['error'])
         elif self.create_json:
             file_name = os.environ.get("SOTABENCH_STORE_FILENAME")
 
