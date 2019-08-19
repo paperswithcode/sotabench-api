@@ -12,20 +12,15 @@ from sotabenchapi.commands.utils import handle_errors
 
 @cli.command("check")
 @click.pass_obj
-@click.option("-cm", "--checkmeta",
+@click.option("-cm", "--params",
               is_flag=True,
               default=False,
-              help="Checks the metadata, such as model names and arxiv paper ids, "
+              help="Checks the parameters, such as model names and arxiv paper ids, "
                    "to ensure they are correct. Does not perform evaluation, "
                    "but is a pure API call with the inputs. You can use this command to check "
-                   "input validity before submission ")
-@click.option("-cp", "--checkparams",
-              is_flag=True,
-              default=False,
-              help="Checks all parameters, including the model, by performing one batch of evaluation "
-                   "and ensuring things run. Afterwards will also check metadata - same checks as checkmeta")
+                   "input string validity before submission.")
 @handle_errors()
-def check(config: Config, checkparams: bool=False, checkmeta: bool = False):
+def check(config: Config, params: bool=False):
     """Check if the benchmarking setup is correct."""
     cwd = Path(os.getcwd()).absolute()
 
@@ -37,10 +32,8 @@ def check(config: Config, checkparams: bool=False, checkmeta: bool = False):
         click.secho("requirements.txt is missing.", fg="red")
         sys.exit(1)
 
-    if checkparams is True:
+    if params is True:
         check_var = "params"
-    elif checkmeta is True:
-        check_var = "meta"
     else:
         check_var = "full"
 
