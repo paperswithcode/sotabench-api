@@ -45,7 +45,7 @@ def check(config: Config, params: bool=False):
     )
     process.wait()
 
-    if process.returncode != 0:
+    if process.returncode != 0:  # catch running errors
         click.secho("Could not run sotabench.py.", fg="red")
         stdout = process.stdout.read().decode("utf-8").strip()
         stderr = process.stderr.read().decode("utf-8").strip()
@@ -55,3 +55,8 @@ def check(config: Config, params: bool=False):
         if stderr:
             click.secho(f"\nStderr:", fg="cyan")
             click.secho(stderr, fg="red")
+    else:  # catch other stdout
+        stdout = process.stdout.read().decode("utf-8").strip()
+
+        if stdout:
+            click.secho(stdout)
