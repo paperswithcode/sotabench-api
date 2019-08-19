@@ -12,7 +12,7 @@ def check_inputs(func):
             task=args[0].task,
             config=None,
             dataset=args[0].dataset.__name__,
-            results=None,
+            results={},
             pytorch_hub_id=None,
             model=None if 'paper_model_name' not in kwargs else kwargs['paper_model_name'],
             arxiv_id=None if 'paper_arxiv_id' not in kwargs else kwargs['paper_arxiv_id'],

@@ -1,5 +1,6 @@
 import json
 import os
+from termcolor import colored
 from typing import Optional, Any
 
 from sotabenchapi.check import in_check_mode, get_check_mode_type
@@ -115,7 +116,7 @@ class BenchmarkResult:
             r = client.check_results([build_dict])
             errors = r["response"]["errors"]
             if errors:
-                print("Error while checking:")
+                print(colored("\nError while checking:\n", 'red'))
                 print(errors)
         elif self.create_json:
             file_name = os.environ.get("SOTABENCH_STORE_FILENAME")
