@@ -9,15 +9,14 @@ def check_inputs(func):
 
     def param_check_only(*args, **kwargs):
         BenchmarkResult(
-            task=args.cls.task,
-            benchmark=args.cls,
+            task=args[0].task,
             config=None,
-            dataset=args.cls.dataset.__name__,
+            dataset=args[0].dataset.__name__,
             results=None,
             pytorch_hub_id=None,
-            model=args.paper_model_name,
-            arxiv_id=args.paper_arxiv_id,
-            pwc_id=args.paper_pwc_id,
+            model=None if 'paper_model_name' not in kwargs else kwargs['paper_model_name'],
+            arxiv_id=None if 'paper_arxiv_id' not in kwargs else kwargs['paper_arxiv_id'],
+            pwc_id=None if 'paper_pwc_id' not in kwargs else kwargs['paper_pwc_id'],
             paper_results={},
             run_hash=None)
 
