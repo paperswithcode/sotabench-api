@@ -12,7 +12,7 @@ from sotabenchapi.commands.utils import handle_errors
 
 @cli.command("check")
 @click.pass_obj
-@click.option("-cm", "--params",
+@click.option("-p", "--params",
               is_flag=True,
               default=False,
               help="Checks the parameters, such as model names and arxiv paper ids, "
@@ -32,12 +32,10 @@ def check(config: Config, params: bool=False):
         click.secho("requirements.txt is missing.", fg="red")
         sys.exit(1)
 
-    if config.sotabench_check:
-        check_var = config.sotabench_check
-    elif params is True:
+    check_var = config.sotabench_check or "full"
+
+    if params is True:
         check_var = "params"
-    else:
-        check_var = "full"
 
     process = subprocess.Popen(
         [sys.executable, "sotabench.py"],
