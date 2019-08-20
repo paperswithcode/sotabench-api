@@ -46,13 +46,15 @@ def check_inputs(func):
         if check_server == 'true':  # if being run on a server, we enforce some parameters
             kwargs.pop('data_root', None)
 
-            if kwargs['num_gpu'] != '1':
-                kwargs['num_gpu'] = 1
-                print('Changing number of GPUs to 1 for sotabench.com server \n')
+            if 'num_gpu' in kwargs:
+                if kwargs['num_gpu'] != '1':
+                    kwargs['num_gpu'] = 1
+                    print('Changing number of GPUs to 1 for sotabench.com server \n')
 
-            if kwargs['device'] != 'cuda':
-                kwargs['cuda'] = 1
-                print('Changing device to cuda for sotabench.com server \n')
+            if 'device' in kwargs:
+                if kwargs['device'] != 'cuda':
+                    kwargs['device'] = 'cuda'
+                    print('Changing device to cuda for sotabench.com server \n')
 
         func(*args, **kwargs)
 
