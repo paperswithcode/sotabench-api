@@ -13,6 +13,13 @@ def check_inputs(func):
     check_mode = os.environ.get("SOTABENCH_CHECK")
 
     def param_check_only(*args, **kwargs):
+        """
+        This function returns a BenchmarkResult with only parameters - no evaluation - so we can check the inputs
+        to see if sotabench.com will accept them
+        :param args: args for the benchmark() method
+        :param kwargs: kwargs for the benchmark() method
+        :return: BenchmarkResult instance
+        """
         BenchmarkResult(
             task=args[0].task,
             config=None,
@@ -26,6 +33,29 @@ def check_inputs(func):
             run_hash=None)
 
     def regular_evaluation(*args, **kwargs):
+        """
+        A regular call to benchmark() - if a SOTABENCH_SERVER environment variable is set then we enforce some
+        parameters so it works on the server (e.g. number of gpus, device type, data location)
+        :param args: args for the benchmark() method
+        :param kwargs: kwargs for the benchmark() method
+        :return: BenchmarkResult instance
+        """
+
+        check_server = os.environ.get("SOTABENCH_SERVER")
+
+        if check_server == 'true':  # if being run on a server, we enforce some parameters
+            kwargs.pop('data_root', None)
+
+            if 'num_gpu' in kwargs:
+                if kwargs['num_gpu'] != '1':
+                    kwargs['num_gpu'] = 1
+                    print('Changing number of GPUs to 1 for sotabench.com server \n')
+
+            if 'device' in kwargs:
+                if kwargs['device'] != 'cuda':
+                    kwargs['device'] = 'cuda'
+                    print('Changing device to cuda for sotabench.com server \n')
+
         func(*args, **kwargs)
 
     if check_mode == 'params':
