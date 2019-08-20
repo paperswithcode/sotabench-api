@@ -100,7 +100,7 @@ class BenchmarkResult:
         """
 
         build_dict = {
-            "model": self.model,
+            "model": self.model.encode('ascii', 'ignore').decode('ascii'),
             "task": self.task,
             "dataset_name": self.dataset,
             "results": self.results,
@@ -115,12 +115,15 @@ class BenchmarkResult:
             client = Client.public()
             r = client.check_results([build_dict])
             errors = r["response"]["errors"]
+            print(colored("\n---\n", 'white'))
+            print('Model: {name}\n'.format(name=build_dict['model']))
             if errors:
-                print(colored("\nError while checking:\n", 'red'))
+                print(colored("Error while checking:\n", 'red'))
                 for error_dict in errors:
                     print(error_dict['error'])
             else:
-                print(colored("\nNo errors detected, looks good!", 'green'))
+                print(colored("No errors detected, looks good!", 'green'))
+            print(colored("\n---\n", 'white'))
         elif self.create_json:
             file_name = os.environ.get("SOTABENCH_STORE_FILENAME")
 
