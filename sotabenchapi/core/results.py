@@ -8,13 +8,9 @@ from sotabenchapi.client import Client
 
 
 class BenchmarkResult:
-    """BenchmarkResult represents the results of a benchmark.
-
-    It takes in inputs from a benchmark evaluation and stores them to a JSON at
-    ``evaluation.json``.
-
-    This file is then processed to store and show results on the sotabench
-    platform.
+    """BenchmarkResult encapsulates data for the results of a model on a benchmark,
+    and methods for serialising that data and checking the parameters with the
+    sotabench.com resource.
 
     Most of the inputs are optional - so when you create a benchmark, you can
     choose which subset of arguments you want to store (that are relevant for
@@ -86,14 +82,13 @@ class BenchmarkResult:
         self.to_dict()
 
     def to_dict(self) -> dict:
-        """Performs evaluation and return build results.
+        """Serialises the benchmark result data
 
-        Performs evaluation using a benchmark function and returns a
-        dictionary of the build results.
-
-        If an environmental variable is set
-        (``SOTABENCH_STORE_RESULTS == True``) then will also save a JSON called
+        If an environmental variable is set, e.g.
+        (``SOTABENCH_STORE_FILENAME == 'evaluation.json'``) then will also save a JSON called
         ``evaluation.json``
+
+        The method also checks for errors with the sotabench.com server if in check mode.
 
         Returns:
             dict: A dictionary containing results

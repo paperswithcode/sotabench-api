@@ -27,10 +27,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sotabenchapi.version import __version__
 
 
-project = "torchbench"
-author = "Robert Stojnic <hello@sotabench.com>"
+project = "Sotabench API"
+author = "Sotabench Team <hello@sotabench.com>"
 description = (
-    "Easily benchmark Machine Learning models on selected tasks and datasets."
+    "Easily benchmark deep learning models"
 )
 copyright = f"{datetime.now():%Y}, {author}"
 
