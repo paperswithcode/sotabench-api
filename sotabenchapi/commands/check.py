@@ -40,23 +40,7 @@ def check(config: Config, params: bool=False):
     process = subprocess.Popen(
         [sys.executable, "sotabench.py"],
         env={"SOTABENCH_CHECK": check_var},
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
     )
     process.wait()
-
-    if process.returncode != 0:  # catch running errors
-        click.secho("Could not run sotabench.py.", fg="red")
-        stdout = process.stdout.read().decode("utf-8").strip()
-        stderr = process.stderr.read().decode("utf-8").strip()
-        if stdout:
-            click.secho(f"\nStdout:", fg="cyan")
-            click.secho(stdout)
-        if stderr:
-            click.secho(f"\nStderr:", fg="cyan")
-            click.secho(stderr, fg="red")
-    else:  # catch other stdout
-        stdout = process.stdout.read().decode("utf-8").strip()
-
-        if stdout:
-            click.secho(stdout)
