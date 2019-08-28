@@ -1,8 +1,10 @@
 import os
+
+from urllib3.util import Retry
 from requests import Session, Timeout
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError
-from urllib3.util import Retry
+
 from sotabenchapi.errors import (
     HttpClientError,
     HttpClientTimeout,

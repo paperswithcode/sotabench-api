@@ -1,4 +1,5 @@
 import os
+
 import click
 
 from sotabenchapi import consts

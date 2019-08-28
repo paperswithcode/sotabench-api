@@ -1,16 +1,19 @@
-import json
+import io
 import os
-from termcolor import colored
-from typing import Optional, Any
+import json
+from typing import Optional
 
-from sotabenchapi.check import in_check_mode, get_check_mode_type
+import click
+
 from sotabenchapi.client import Client
+from sotabenchapi.check import in_check_mode, get_check_mode_type
 
 
 class BenchmarkResult:
-    """BenchmarkResult encapsulates data for the results of a model on a benchmark,
-    and methods for serialising that data and checking the parameters with the
-    sotabench.com resource.
+    """Class encapsulates data for the results of a model on a benchmark.
+
+    It also provides methods for serialising that data and checking the
+    parameters with the sotabench.com resource.
 
     Most of the inputs are optional - so when you create a benchmark, you can
     choose which subset of arguments you want to store (that are relevant for
@@ -23,10 +26,11 @@ class BenchmarkResult:
             ``CIFAR-10``.
         results (dict): Dictionary with keys as metric names, e.g.
             ``Top 1 Accuracy``, and values as floats, e.g. ``0.80``.
+        model_description (str, optional): Optional description of the model.
         config (dict, optional): Dictionary storing user configuration
             arguments (inputs to the evaluation function), e.g. the transforms
             that were passed to the dataset object (resizing, cropping...)
-        arxiv_id (str), optional): String describing the paper where the model
+        arxiv_id (str, optional): String describing the paper where the model
             comes from, e.g. ``1901.07518``.
         pwc_id (str, optional): Describing the paperswithcode.com page - e.g.:
             ``hybrid-task-cascade-for-instance-segmentation``.
@@ -53,6 +57,7 @@ class BenchmarkResult:
         task: str,
         dataset: str,
         results: dict,
+        model_description: str = "",
         config: Optional[dict] = None,
         arxiv_id: Optional[str] = None,
         pwc_id: Optional[str] = None,
@@ -65,6 +70,7 @@ class BenchmarkResult:
         self.task = task
         self.dataset = dataset
         self.results = results
+        self.model_description = model_description
         self.config = config
         self.arxiv_id = arxiv_id
         self.pwc_id = pwc_id
@@ -82,20 +88,22 @@ class BenchmarkResult:
         self.to_dict()
 
     def to_dict(self) -> dict:
-        """Serialises the benchmark result data
+        """Serialises the benchmark result data.
 
         If an environmental variable is set, e.g.
-        (``SOTABENCH_STORE_FILENAME == 'evaluation.json'``) then will also save a JSON called
-        ``evaluation.json``
+        (``SOTABENCH_STORE_FILENAME == 'evaluation.json'``) then will also save
+        a JSON called ``evaluation.json``
 
-        The method also checks for errors with the sotabench.com server if in check mode.
+        The method also checks for errors with the sotabench.com server if in
+        check mode.
 
         Returns:
             dict: A dictionary containing results
         """
 
         build_dict = {
-            "model": self.model.encode('ascii', 'ignore').decode('ascii'),
+            "model": self.model.encode("ascii", "ignore").decode("ascii"),
+            "model_description": self.model_description,
             "task": self.task,
             "dataset_name": self.dataset,
             "results": self.results,
@@ -110,25 +118,26 @@ class BenchmarkResult:
             client = Client.public()
             r = client.check_results([build_dict])
             errors = r["response"]["errors"]
-            print(colored("\n---\n", 'white'))
-            print('Model: {name}\n'.format(name=build_dict['model']))
+            click.secho("\n---\n", fg="white")
+            print("Model: {name}\n".format(name=build_dict["model"]))
             if errors:
-                print(colored("Error while checking:\n", 'red'))
+                click.secho("Error while checking:\n", fg="red")
                 for error_dict in errors:
-                    print(error_dict['error'])
+                    print(error_dict["error"])
             else:
-                print(colored("No errors detected, looks good!", 'green'))
-            print(colored("\n---\n", 'white'))
+                click.secho("No errors detected, looks good!", fg="green")
+            click.secho("\n---\n", fg="white")
         elif self.create_json:
             file_name = os.environ.get("SOTABENCH_STORE_FILENAME")
 
             if not os.path.isfile(file_name):
                 models_dict = [build_dict]
             else:
-                models_dict = json.load(open(file_name))
+                with io.open(file_name) as f:
+                    models_dict = json.load(f)
                 models_dict.append(build_dict)
 
-            with open(file_name, "w") as f:
+            with io.open(file_name, "w") as f:
                 json.dump(models_dict, f, ensure_ascii=False)
 
         return build_dict
