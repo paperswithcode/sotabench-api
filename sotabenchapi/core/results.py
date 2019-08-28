@@ -57,7 +57,7 @@ class BenchmarkResult:
         task: str,
         dataset: str,
         results: dict,
-        model_description: str = "",
+        model_description: Optional[str] = None,
         config: Optional[dict] = None,
         arxiv_id: Optional[str] = None,
         pwc_id: Optional[str] = None,
