@@ -37,7 +37,7 @@ def check_inputs(func):
             results={},
             pytorch_hub_id=None,
             model=kwargs.get("paper_model_name", None),
-            model_description=kwargs.get("paper_model_description", ""),
+            model_description=kwargs.get("model_description", ""),
             arxiv_id=kwargs.get("paper_arxiv_id", None),
             pwc_id=kwargs.get("paper_pwc_id", None),
             paper_results={},
