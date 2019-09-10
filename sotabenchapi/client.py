@@ -147,3 +147,16 @@ class Client(object):
             run_number (int): Run number of the build.
         """
         return self.http.get(f"builds/{repository}/{run_number}/")
+
+    # Benchmark
+    def benchmark_list(self):
+        """List users benchmarks."""
+        return self.http.get(f"benchmarks/")
+
+    def benchmark_get(self, benchmark: str):
+        """Get benchmark.
+
+        Args:
+            benchmark (str): Benchmark slug.
+        """
+        return self.http.get(f"benchmarks/{benchmark}/")

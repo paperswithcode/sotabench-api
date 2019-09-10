@@ -40,4 +40,7 @@ def table(data):
     """Show data as a table."""
     if not isinstance(data, (list, tuple)):
         data = [data]
-    click.secho(tabulate(data, headers="keys", tablefmt="fancy_grid"))
+    if len(data) == 0:
+        click.secho("No items found.", fg="cyan")
+    else:
+        click.secho(tabulate(data, headers="keys", tablefmt="fancy_grid"))
