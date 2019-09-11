@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from sotabenchapi import uploader
 from sotabenchapi.config import Config
 from sotabenchapi.http import HttpClient
 
@@ -160,3 +161,12 @@ class Client(object):
             benchmark (str): Benchmark slug.
         """
         return self.http.get(f"benchmarks/{benchmark}/")
+
+    def benchmark_upload(self, benchmark: str, dataset: str):
+        """Upload dataset for a benchmark.
+
+        Args:
+            benchmark (str): Benchmark slug.
+            dataset (str): Path to a dataset file.
+        """
+        uploader.upload(http=self.http, filename=dataset, destination="foo")

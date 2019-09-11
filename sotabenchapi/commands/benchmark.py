@@ -32,3 +32,18 @@ def benchmark_get(config: Config, benchmark: str):
     """
     client = Client(config)
     table(client.benchmark_get(benchmark=benchmark))
+
+
+@benchmark_cli.command("upload")
+@click.argument("benchmark", required=True)
+@click.argument(
+    "dataset",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
+@click.pass_obj
+@handle_errors()
+def upload(config: Config, benchmark: str, dataset: str):
+    """Upload dataset for a benchmark."""
+    client = Client(config)
+    client.benchmark_upload(benchmark=benchmark, dataset=dataset)
