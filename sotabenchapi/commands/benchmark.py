@@ -35,15 +35,18 @@ def benchmark_get(config: Config, benchmark: str):
 
 
 @benchmark_cli.command("upload")
-@click.argument("benchmark", required=True)
 @click.argument(
     "dataset",
     required=True,
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 )
+@click.option("-b", "--benchmark", required=True, help="Benchmark slug.")
+@click.option("-l", "--library", required=True, help="Library name.")
 @click.pass_obj
-@handle_errors()
-def upload(config: Config, benchmark: str, dataset: str):
+@handle_errors(m404="Benchmark library not found.")
+def upload(config: Config, dataset: str, benchmark: str, library: str):
     """Upload dataset for a benchmark."""
     client = Client(config)
-    client.benchmark_upload(benchmark=benchmark, dataset=dataset)
+    client.benchmark_upload(
+        dataset=dataset, benchmark=benchmark, library=library
+    )

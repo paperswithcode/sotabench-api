@@ -18,6 +18,12 @@ def handle_errors(m404=None):
                     click.secho(m404, fg="red")
                 else:
                     click.secho(e.message, fg="red")
+                    try:
+                        data = e.response.json()
+                        if "error" in data:
+                            click.secho(data["error"], fg="red")
+                    except Exception:
+                        pass
 
         return wrapper
 

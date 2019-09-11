@@ -162,11 +162,17 @@ class Client(object):
         """
         return self.http.get(f"benchmarks/{benchmark}/")
 
-    def benchmark_upload(self, benchmark: str, dataset: str):
+    def benchmark_upload(self, dataset: str, benchmark: str, library: str):
         """Upload dataset for a benchmark.
 
         Args:
-            benchmark (str): Benchmark slug.
             dataset (str): Path to a dataset file.
+            benchmark (str): Benchmark slug.
+            library (str): Library name.
         """
-        uploader.upload(http=self.http, filename=dataset, destination="foo")
+        uploader.upload(
+            http=self.http,
+            filename=dataset,
+            benchmark=benchmark,
+            library=library,
+        )
