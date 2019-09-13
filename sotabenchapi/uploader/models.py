@@ -1,7 +1,4 @@
-import io
-import sys
 import uuid
-import mmap
 
 
 from sotabenchapi.uploader.utils import utcnow, strftime, safe_timestamp
@@ -56,48 +53,3 @@ class Part:
             end_time=safe_timestamp(d["end_time"]),
             presigned_url=d["presigned_url"],
         )
-
-
-def memory_map(file):
-    if "win" in sys.platform and not sys.platform == "darwin":
-        return mmap.mmap(file.fileno(), 0, None, mmap.ACCESS_READ)
-    else:
-        return mmap.mmap(file.fileno(), 0, mmap.MAP_PRIVATE, mmap.ACCESS_READ)
-
-
-class Slice:
-    def __init__(self, filename, length, offset=0):
-        self.filename = filename
-        self.length = length
-        self.offset = offset
-        self.end = offset + length
-        self.pos = offset
-        self.f = io.open(filename, "rb")
-        self.mmap = memory_map(self.f)
-        # self.bio = io.BytesIO(self.mmap[self.offset:self.end])
-        self.m = self.mmap[self.offset : self.end]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    def reset(self):
-        self.f.seek(self.offset, 0)
-
-    def read(self, size):
-        return self.bio.read(size)
-
-    def readline(self, size=-1):
-        return self.bio.readline(size)
-
-    def readlines(self, hint=-1):
-        return self.bio.readlines(hint)
-
-    def __iter__(self):
-        return self.bio.__iter__()
-
-    def close(self):
-        self.mmap.close()
-        self.f.close()
