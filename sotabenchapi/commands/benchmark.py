@@ -34,6 +34,10 @@ def benchmark_get(config: Config, benchmark: str):
     table(client.benchmark_get(benchmark=benchmark))
 
 
+part_size_type = click.IntRange(min=5)
+part_size_type.name = "integer"
+
+
 @benchmark_cli.command("upload")
 @click.argument(
     "dataset",
@@ -42,11 +46,26 @@ def benchmark_get(config: Config, benchmark: str):
 )
 @click.option("-b", "--benchmark", required=True, help="Benchmark slug.")
 @click.option("-l", "--library", required=True, help="Library name.")
+@click.option(
+    "-p",
+    "--part-size",
+    type=part_size_type,
+    default=None,
+    help=(
+        "Set the part size in MB (min 5MB). If not provided the part size "
+        "will be calculated based on the file size."
+    ),
+)
 @click.pass_obj
 @handle_errors(m404="Benchmark library not found.")
-def upload(config: Config, dataset: str, benchmark: str, library: str):
+def upload(
+    config: Config, dataset: str, benchmark: str, library: str, part_size: int
+):
     """Upload dataset for a benchmark."""
     client = Client(config)
     client.benchmark_upload(
-        dataset=dataset, benchmark=benchmark, library=library
+        dataset=dataset,
+        benchmark=benchmark,
+        library=library,
+        part_size=part_size,
     )

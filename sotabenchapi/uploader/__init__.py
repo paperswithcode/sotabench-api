@@ -1,3 +1,3 @@
-__all__ = ["upload"]
+__all__ = ["multipart_upload"]
 
-from sotabenchapi.uploader.upload import upload
+from sotabenchapi.uploader.upload import multipart_upload
