@@ -88,7 +88,7 @@ def multipart_upload(
             buffer.reset(label=f"Uploading part #{part.no}")
             try:
                 result = requests.put(part.presigned_url, data=buffer)
-                part.etag = result.headers["ETag"]
+                part.etag = result.headers.get("ETag", "")
                 part.state = Part.State.finished
             except Exception as e:
                 logger.exception("Failed to upload: %s", e)
