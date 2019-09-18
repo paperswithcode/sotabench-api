@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from sotabenchapi import uploader
 from sotabenchapi.config import Config
 from sotabenchapi.http import HttpClient
 
@@ -147,3 +148,39 @@ class Client(object):
             run_number (int): Run number of the build.
         """
         return self.http.get(f"builds/{repository}/{run_number}/")
+
+    # Benchmark
+    def benchmark_list(self):
+        """List users benchmarks."""
+        return self.http.get(f"benchmarks/")
+
+    def benchmark_get(self, benchmark: str):
+        """Get benchmark.
+
+        Args:
+            benchmark (str): Benchmark slug.
+        """
+        return self.http.get(f"benchmarks/{benchmark}/")
+
+    def benchmark_upload(
+        self,
+        dataset: str,
+        benchmark: str,
+        library: str,
+        part_size: Optional[int] = None,
+    ):
+        """Upload dataset for a benchmark.
+
+        Args:
+            dataset (str): Path to a dataset file.
+            benchmark (str): Benchmark slug.
+            library (str): Library name.
+            part_size (int, optional): Optional user defined part size.
+        """
+        uploader.multipart_upload(
+            http=self.http,
+            filename=dataset,
+            benchmark=benchmark,
+            library=library,
+            part_size=part_size,
+        )

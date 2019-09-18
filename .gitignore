@@ -17,6 +17,7 @@ dist/
 # Virtualenv
 .venv
 venv
+.envrc
 
 # Documentation artefacts
 docs/_build/
