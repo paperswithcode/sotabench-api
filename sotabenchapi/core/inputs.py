@@ -35,6 +35,7 @@ def check_inputs(func):
             config=None,
             dataset=args[0].dataset.__name__,
             results={},
+            speed_mem_metrics={},
             pytorch_hub_id=None,
             model=kwargs.get("paper_model_name", None),
             model_description=kwargs.get("model_description", ""),
