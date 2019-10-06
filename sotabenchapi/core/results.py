@@ -23,6 +23,8 @@ class BenchmarkResult:
             ``CIFAR-10``.
         results (dict): Dictionary with keys as metric names, e.g.
             ``Top 1 Accuracy``, and values as floats, e.g. ``0.80``.
+        speed_mem_metrics (dict, optional): Dictionary with information about speed,
+            memory usage and other measures.
         config (dict, optional): Dictionary storing user configuration
             arguments (inputs to the evaluation function), e.g. the transforms
             that were passed to the dataset object (resizing, cropping...)
@@ -53,6 +55,7 @@ class BenchmarkResult:
         task: str,
         dataset: str,
         results: dict,
+        speed_mem_metrics: Optional[dict] = None,
         config: Optional[dict] = None,
         arxiv_id: Optional[str] = None,
         pwc_id: Optional[str] = None,
@@ -65,6 +68,7 @@ class BenchmarkResult:
         self.task = task
         self.dataset = dataset
         self.results = results
+        self.speed_mem_metrics = speed_mem_metrics
         self.config = config
         self.arxiv_id = arxiv_id
         self.pwc_id = pwc_id
@@ -99,6 +103,7 @@ class BenchmarkResult:
             "task": self.task,
             "dataset_name": self.dataset,
             "results": self.results,
+            "speed_mem_metrics": self.speed_mem_metrics,
             "arxiv_id": self.arxiv_id,
             "pwc_id": self.pwc_id,
             "pytorch_hub_id": self.pytorch_hub_id,
