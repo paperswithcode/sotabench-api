@@ -29,9 +29,7 @@ from sotabenchapi.version import __version__
 
 project = "Sotabench API"
 author = "Sotabench Team <hello@sotabench.com>"
-description = (
-    "Easily benchmark deep learning models"
-)
+description = "Easily benchmark deep learning models"
 copyright = f"{datetime.now():%Y}, {author}"
 
 

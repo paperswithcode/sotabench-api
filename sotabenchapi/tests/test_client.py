@@ -1,9 +1,10 @@
+import os
+
 import pytest
 
 from sotabenchapi import consts
 from sotabenchapi.client import Client
 from sotabenchapi.config import Config
-import os
 
 
 @pytest.fixture

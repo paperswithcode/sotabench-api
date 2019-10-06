@@ -1,26 +1,29 @@
 import os
 import sys
-import click
 import subprocess
 from pathlib import Path
 
+import click
+
 from sotabenchapi.config import Config
-from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
 from sotabenchapi.commands.utils import handle_errors
 
 
 @cli.command("check")
 @click.pass_obj
-@click.option("-p", "--params",
-              is_flag=True,
-              default=False,
-              help="Checks the parameters, such as model names and arxiv paper ids, "
-                   "to ensure they are correct. Does not perform evaluation, "
-                   "but is a pure API call with the inputs. You can use this command to check "
-                   "input string validity before submission.")
+@click.option(
+    "-p",
+    "--params",
+    is_flag=True,
+    default=False,
+    help="Checks the parameters, such as model names and arxiv paper ids, "
+    "to ensure they are correct. Does not perform evaluation, but is a pure "
+    "API call with the inputs. You can use this command to check input string "
+    "validity before submission.",
+)
 @handle_errors()
-def check(config: Config, params: bool=False):
+def check(config: Config, params: bool = False):
     """Check if the benchmarking setup is correct."""
     cwd = Path(os.getcwd()).absolute()
 
