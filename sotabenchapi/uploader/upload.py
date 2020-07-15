@@ -40,7 +40,7 @@ class Buffer(io.BytesIO):
 def multipart_upload(
     http: HttpClient,
     filename: str,
-    benchmark: str,
+    repository: str,
     library: str,
     part_size: Optional[int] = None,
 ):
@@ -54,7 +54,7 @@ def multipart_upload(
             http.post(
                 "/upload/start/",
                 data={
-                    "benchmark": benchmark,
+                    "repository": repository,
                     "library": library,
                     "name": os.path.basename(filename),
                     "size": size,

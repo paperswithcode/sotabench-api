@@ -162,10 +162,10 @@ class Client(object):
         """
         return self.http.get(f"benchmarks/{benchmark}/")
 
-    def benchmark_upload(
+    def upload(
         self,
         dataset: str,
-        benchmark: str,
+        repository: str,
         library: str,
         part_size: Optional[int] = None,
     ):
@@ -173,14 +173,14 @@ class Client(object):
 
         Args:
             dataset (str): Path to a dataset file.
-            benchmark (str): Benchmark slug.
+            repository (str): repository slug.
             library (str): Library name.
             part_size (int, optional): Optional user defined part size.
         """
         uploader.multipart_upload(
             http=self.http,
             filename=dataset,
-            benchmark=benchmark,
+            repository=repository,
             library=library,
             part_size=part_size,
         )
