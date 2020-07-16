@@ -47,7 +47,7 @@ def multipart_upload(
     size = os.stat(filename).st_size
     file = io.open(filename, "rb")
     try:
-        md5 = get_sha256(file, size=size, label="Calculating file SHA 256")
+        sha256 = get_sha256(file, size=size, label="Calculating file SHA 256")
         file.seek(0)
 
         upload = Upload.from_dict(
@@ -57,7 +57,7 @@ def multipart_upload(
                     "repository": repository,
                     "path": path,
                     "size": size,
-                    "md5": md5,
+                    "sha256": sha256,
                     "part_size": part_size,
                 },
             )
