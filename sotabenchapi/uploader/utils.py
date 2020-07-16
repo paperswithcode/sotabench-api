@@ -7,8 +7,8 @@ import click
 from sotabenchapi.uploader.consts import MB
 
 
-def get_md5(file, size, chunk_size=MB, label="") -> str:
-    """Return a md5 hexdigest of a file.
+def get_sha256(file, size, chunk_size=MB, label="") -> str:
+    """Return a sha256 hexdigest of a file.
 
     Tested different chunk sizes, and I got the fastest calculation with the
     1MB chunk size.
@@ -19,16 +19,16 @@ def get_md5(file, size, chunk_size=MB, label="") -> str:
         chunk_size (int): Chunk size while reading the file.
         label (str): Progress bar label.
     """
-    md5 = hashlib.md5()
+    sha = hashlib.sha256()
 
     with click.progressbar(length=size, label=label) as bar:
         while True:
             buf = file.read(chunk_size)
             if not buf:
                 break
-            md5.update(buf)
+            sha.update(buf)
             bar.update(chunk_size)
-    return md5.hexdigest()
+    return sha.hexdigest()
 
 
 def utcnow() -> datetime:

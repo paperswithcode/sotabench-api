@@ -3,7 +3,7 @@ import click
 from sotabenchapi.config import Config
 from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
-from sotabenchapi.commands.utils import handle_errors, check_repo, table
+from sotabenchapi.commands.utils import handle_errors
 
 
 part_size_type = click.IntRange(min=5)
@@ -17,9 +17,16 @@ part_size_type.name = "integer"
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 )
 @click.option("-r", "--repository", required=True, help="Repository slug.")
-@click.option("-l", "--library", required=True, help="Library name.")
 @click.option(
     "-p",
+    "--path",
+    required=False,
+    default=None,
+    help="Path in .data folder where the dataset should be downloaded. "
+         "Default: `basename(dataset)`",
+)
+@click.option(
+    "-s",
     "--part-size",
     type=part_size_type,
     default=None,
@@ -29,15 +36,15 @@ part_size_type.name = "integer"
     ),
 )
 @click.pass_obj
-@handle_errors(m404="Library not found.")
+@handle_errors(m404="Repository not found.")
 def upload(
-    config: Config, dataset: str, repository: str, library: str, part_size: int
+    config: Config, dataset: str, repository: str, path: str, part_size: int
 ):
     """Upload dataset for a repository."""
     client = Client(config)
     client.upload(
         dataset=dataset,
         repository=repository,
-        library=library,
+        path=path,
         part_size=part_size,
     )

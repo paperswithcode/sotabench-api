@@ -57,7 +57,7 @@ class Part:
     no: int
     size: int
     state: UploadState
-    md5: Optional[str] = None
+    sha256: Optional[str] = None
     etag: Optional[str] = None
     started_time: Optional[datetime] = None
     finished_time: Optional[datetime] = None
@@ -68,7 +68,7 @@ class Part:
             "upload": self.upload,
             "no": self.no,
             "size": str(self.size),
-            "md5": self.md5,
+            "sha256": self.sha256,
             "etag": self.etag,
             "state": self.state.value,
             "started_time": strftime(self.started_time),
@@ -85,7 +85,7 @@ class Part:
             upload=d["upload"],
             no=int(d["no"]),
             size=int(d["size"]),
-            md5=d["md5"],
+            sha256=d["sha256"],
             etag=d["etag"],
             state=UploadState(d["state"]),
             started_time=safe_timestamp(d["started_time"]) or utcnow(),

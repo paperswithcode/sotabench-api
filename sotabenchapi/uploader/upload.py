@@ -7,7 +7,7 @@ import click
 import requests
 
 from sotabenchapi.http import HttpClient
-from sotabenchapi.uploader.utils import get_md5
+from sotabenchapi.uploader.utils import get_sha256
 from sotabenchapi.uploader.models import Part, Upload
 
 
@@ -41,13 +41,13 @@ def multipart_upload(
     http: HttpClient,
     filename: str,
     repository: str,
-    library: str,
+    path: str,
     part_size: Optional[int] = None,
 ):
     size = os.stat(filename).st_size
     file = io.open(filename, "rb")
     try:
-        md5 = get_md5(file, size=size, label="Calculating file MD5")
+        md5 = get_sha256(file, size=size, label="Calculating file SHA 256")
         file.seek(0)
 
         upload = Upload.from_dict(
@@ -55,8 +55,7 @@ def multipart_upload(
                 "/upload/start/",
                 data={
                     "repository": repository,
-                    "library": library,
-                    "name": os.path.basename(filename),
+                    "path": path,
                     "size": size,
                     "md5": md5,
                     "part_size": part_size,
@@ -77,10 +76,10 @@ def multipart_upload(
 
             # buffer = io.BytesIO(file.read(part.size))
             buffer = Buffer(file.read(part.size))
-            part.md5 = get_md5(
+            part.sha256 = get_sha256(
                 buffer,
                 size=part.size,
-                label=f"Calculating MD5 for part #{part.no}",
+                label=f"Calculating SHA 256 for part #{part.no}",
             )
             part = Part.from_dict(
                 http.post("/upload/part/start/", data=part.to_dict())

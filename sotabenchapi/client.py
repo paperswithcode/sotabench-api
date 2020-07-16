@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 
 from sotabenchapi import uploader
@@ -166,7 +167,7 @@ class Client(object):
         self,
         dataset: str,
         repository: str,
-        library: str,
+        path: Optional[str] = None,
         part_size: Optional[int] = None,
     ):
         """Upload dataset for a benchmark.
@@ -174,13 +175,15 @@ class Client(object):
         Args:
             dataset (str): Path to a dataset file.
             repository (str): repository slug.
-            library (str): Library name.
+            path (str): Path under the .data folder where the dataset should be
+                downloaded. Default: `basename(dataset).
             part_size (int, optional): Optional user defined part size.
         """
+
         uploader.multipart_upload(
             http=self.http,
             filename=dataset,
             repository=repository,
-            library=library,
+            path=path or os.path.basename(dataset),
             part_size=part_size,
         )
