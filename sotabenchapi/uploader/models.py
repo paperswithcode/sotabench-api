@@ -7,6 +7,7 @@ from sotabenchapi.uploader.utils import utcnow, strftime, safe_timestamp
 
 
 class UploadState(enum.Enum):
+    exists = "exists"
     queued = "queued"
     started = "started"
     finished = "finished"

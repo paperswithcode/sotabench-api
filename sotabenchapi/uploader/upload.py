@@ -62,6 +62,17 @@ def multipart_upload(
                 },
             )
         )
+
+        # If the dataset is already uploaded it will just be added to the
+        # repository, no additional uploading will be done.
+        if upload.state == Upload.State.exists:
+            click.secho(
+                f"\nDataset already uploaded."
+                f"\nAdded to repository: {repository}",
+                fg="cyan",
+            )
+            return
+
         while True:
             part = Part.from_dict(
                 http.post(
