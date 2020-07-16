@@ -67,7 +67,7 @@ def multipart_upload(
         # repository, no additional uploading will be done.
         if upload.state == Upload.State.exists:
             click.secho(
-                f"\nDataset already uploaded."
+                f"Dataset already uploaded."
                 f"\nAdded to repository: {repository}",
                 fg="cyan",
             )
@@ -106,6 +106,6 @@ def multipart_upload(
             http.post("/upload/part/end/", data=part.to_dict())
 
         http.post("/upload/end/", data={"upload_id": upload.id})
-        click.secho("\nUpload successfully finished.", fg="cyan")
+        click.secho("Upload successfully finished.", fg="cyan")
     finally:
         file.close()

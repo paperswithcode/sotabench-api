@@ -19,7 +19,7 @@ class Upload:
     State = UploadState
 
     id: str
-    md5: str
+    sha256: str
     size: int
     part_size: int
     part_number: int
@@ -28,7 +28,7 @@ class Upload:
     def to_dict(self) -> dict:
         return {
             "id": self.id,
-            "md5": self.md5,
+            "sha256": self.sha256,
             "size": str(self.size),
             "part_size": str(self.part_size),
             "part_number": self.part_number,
@@ -42,7 +42,7 @@ class Upload:
 
         return cls(
             id=d["id"],
-            md5=d["md5"],
+            sha256=d["sha256"],
             size=int(d["size"]),
             part_size=int(d["part_size"]),
             part_number=d["part_number"],

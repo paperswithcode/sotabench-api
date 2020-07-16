@@ -3,7 +3,7 @@ import click
 from sotabenchapi.config import Config
 from sotabenchapi.client import Client
 from sotabenchapi.commands.cli import cli
-from sotabenchapi.commands.utils import handle_errors
+from sotabenchapi.commands.utils import handle_errors, check_repo
 
 
 part_size_type = click.IntRange(min=5)
@@ -44,7 +44,7 @@ def upload(
     client = Client(config)
     client.upload(
         dataset=dataset,
-        repository=repository,
+        repository=check_repo(repository),
         path=path,
         part_size=part_size,
     )
