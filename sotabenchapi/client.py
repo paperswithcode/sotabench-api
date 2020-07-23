@@ -208,7 +208,7 @@ class Client(object):
     # Benchmark
     def benchmark_list(self):
         """List users benchmarks."""
-        return self.http.get(f"benchmarks/")
+        return self.http.get("benchmarks/")
 
     def benchmark_get(self, benchmark: str):
         """Get benchmark.
