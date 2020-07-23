@@ -90,8 +90,7 @@ class Client(object):
                 submitted results.
         """
 
-        response = self.http.post("check/results/", data={"results": results})
-        return response
+        return self.http.post("check/results/", data={"results": results})
 
     # Repository
     def repository_list(self, username: Optional[str] = None):
@@ -122,6 +121,62 @@ class Client(object):
         return self.http.patch(
             f"repositories/{repository}/",
             data={"build_enabled": build_enabled},
+        )
+
+    # Dataset
+    def dataset_list(self, repository: str):
+        """List all datasets for the given repository.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+        """
+        return self.http.get(f"repositories/{repository}/datasets/")
+
+    def dataset_upload(
+        self,
+        dataset: str,
+        repository: str,
+        path: Optional[str] = None,
+        part_size: Optional[int] = None,
+    ):
+        """Upload dataset for a repository.
+
+        Args:
+            dataset (str): Path to a dataset file.
+            repository (str): repository slug.
+            path (str): Path under the .data folder where the dataset should be
+                downloaded. Default: `basename(dataset).
+            part_size (int, optional): Optional user defined part size.
+        """
+
+        uploader.multipart_upload(
+            http=self.http,
+            filename=dataset,
+            repository=repository,
+            path=path or os.path.basename(dataset),
+            part_size=part_size,
+        )
+
+    def dataset_get(self, repository: str, dataset: str):
+        """Get dataset.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+            dataset (str): Path to the dataset.
+        """
+        return self.http.get(
+            f"repositories/{repository}/datasets/?dataset={dataset}"
+        )
+
+    def dataset_delete(self, repository: str, dataset: str):
+        """Update build_enabled flag.
+
+        Args:
+            repository (str): Repository in ``owner/project`` format.
+            dataset (str): Path to the dataset.
+        """
+        return self.http.delete(
+            f"repositories/{repository}/datasets/", data={"dataset": dataset},
         )
 
     # Build
@@ -162,28 +217,3 @@ class Client(object):
             benchmark (str): Benchmark slug.
         """
         return self.http.get(f"benchmarks/{benchmark}/")
-
-    def upload(
-        self,
-        dataset: str,
-        repository: str,
-        path: Optional[str] = None,
-        part_size: Optional[int] = None,
-    ):
-        """Upload dataset for a benchmark.
-
-        Args:
-            dataset (str): Path to a dataset file.
-            repository (str): repository slug.
-            path (str): Path under the .data folder where the dataset should be
-                downloaded. Default: `basename(dataset).
-            part_size (int, optional): Optional user defined part size.
-        """
-
-        uploader.multipart_upload(
-            http=self.http,
-            filename=dataset,
-            repository=repository,
-            path=path or os.path.basename(dataset),
-            part_size=part_size,
-        )
