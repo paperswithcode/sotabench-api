@@ -7,7 +7,7 @@ import click
 import requests
 
 from sotabenchapi.http import HttpClient
-from sotabenchapi.uploader.utils import get_md5
+from sotabenchapi.uploader.utils import get_sha256
 from sotabenchapi.uploader.models import Part, Upload
 
 
@@ -40,29 +40,39 @@ class Buffer(io.BytesIO):
 def multipart_upload(
     http: HttpClient,
     filename: str,
-    benchmark: str,
-    library: str,
+    repository: str,
+    path: str,
     part_size: Optional[int] = None,
 ):
     size = os.stat(filename).st_size
     file = io.open(filename, "rb")
     try:
-        md5 = get_md5(file, size=size, label="Calculating file MD5")
+        sha256 = get_sha256(file, size=size, label="Calculating file SHA 256")
         file.seek(0)
 
         upload = Upload.from_dict(
             http.post(
                 "/upload/start/",
                 data={
-                    "benchmark": benchmark,
-                    "library": library,
-                    "name": os.path.basename(filename),
+                    "repository": repository,
+                    "path": path,
                     "size": size,
-                    "md5": md5,
+                    "sha256": sha256,
                     "part_size": part_size,
                 },
             )
         )
+
+        # If the dataset is already uploaded it will just be added to the
+        # repository, no additional uploading will be done.
+        if upload.state == Upload.State.exists:
+            click.secho(
+                f"Dataset already uploaded."
+                f"\nAdded to repository: {repository}",
+                fg="cyan",
+            )
+            return
+
         while True:
             part = Part.from_dict(
                 http.post(
@@ -77,10 +87,10 @@ def multipart_upload(
 
             # buffer = io.BytesIO(file.read(part.size))
             buffer = Buffer(file.read(part.size))
-            part.md5 = get_md5(
+            part.sha256 = get_sha256(
                 buffer,
                 size=part.size,
-                label=f"Calculating MD5 for part #{part.no}",
+                label=f"Calculating SHA 256 for part #{part.no}",
             )
             part = Part.from_dict(
                 http.post("/upload/part/start/", data=part.to_dict())
@@ -96,6 +106,6 @@ def multipart_upload(
             http.post("/upload/part/end/", data=part.to_dict())
 
         http.post("/upload/end/", data={"upload_id": upload.id})
-        click.secho("\nUpload successfully finished.", fg="cyan")
+        click.secho("Upload successfully finished.", fg="cyan")
     finally:
         file.close()

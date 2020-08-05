@@ -33,7 +33,7 @@ def handle_errors(m404=None):
 def check_repo(repository: str):
     parts = repository.split("/")
     if len(parts) != 2:
-        click.secho(f"Invalid repository name: ", fg="red", nl=False)
+        click.secho("Invalid repository name: ", fg="red", nl=False)
         click.secho(repository)
         click.secho(
             "Repository name must be in owner/project format.", fg="cyan"

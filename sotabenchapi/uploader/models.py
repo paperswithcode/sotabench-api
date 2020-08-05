@@ -7,6 +7,7 @@ from sotabenchapi.uploader.utils import utcnow, strftime, safe_timestamp
 
 
 class UploadState(enum.Enum):
+    exists = "exists"
     queued = "queued"
     started = "started"
     finished = "finished"
@@ -18,7 +19,7 @@ class Upload:
     State = UploadState
 
     id: str
-    md5: str
+    sha256: str
     size: int
     part_size: int
     part_number: int
@@ -27,7 +28,7 @@ class Upload:
     def to_dict(self) -> dict:
         return {
             "id": self.id,
-            "md5": self.md5,
+            "sha256": self.sha256,
             "size": str(self.size),
             "part_size": str(self.part_size),
             "part_number": self.part_number,
@@ -41,7 +42,7 @@ class Upload:
 
         return cls(
             id=d["id"],
-            md5=d["md5"],
+            sha256=d["sha256"],
             size=int(d["size"]),
             part_size=int(d["part_size"]),
             part_number=d["part_number"],
@@ -57,7 +58,7 @@ class Part:
     no: int
     size: int
     state: UploadState
-    md5: Optional[str] = None
+    sha256: Optional[str] = None
     etag: Optional[str] = None
     started_time: Optional[datetime] = None
     finished_time: Optional[datetime] = None
@@ -68,7 +69,7 @@ class Part:
             "upload": self.upload,
             "no": self.no,
             "size": str(self.size),
-            "md5": self.md5,
+            "sha256": self.sha256,
             "etag": self.etag,
             "state": self.state.value,
             "started_time": strftime(self.started_time),
@@ -85,7 +86,7 @@ class Part:
             upload=d["upload"],
             no=int(d["no"]),
             size=int(d["size"]),
-            md5=d["md5"],
+            sha256=d["sha256"],
             etag=d["etag"],
             state=UploadState(d["state"]),
             started_time=safe_timestamp(d["started_time"]) or utcnow(),

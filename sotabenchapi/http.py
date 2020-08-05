@@ -46,6 +46,7 @@ class HttpClient:
             timeout (int): Request timeout time.
             max_retries (int): Maximal number of retries.
             backoff_factor (float): Backoff factor.
+            backoff_max (int): Maximal number of backoffs.
             status_forcelist (tuple of int): Tuple of HTTP statuses for
                 which the service should retry.
         """
@@ -137,7 +138,7 @@ class HttpClient:
             raise HttpClientTimeout() from e
 
         except ConnectionError as e:
-            raise HttpClientError(f"SotaBench server not reachable.") from e
+            raise HttpClientError("SotaBench server not reachable.") from e
 
         except Exception as e:
             raise HttpClientError(f"Unknown error. {e!r}") from e
